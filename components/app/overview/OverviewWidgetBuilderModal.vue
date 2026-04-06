@@ -106,14 +106,14 @@ function saveWidget() {
               <span class="eyebrow-dot" />
               Add custom widget
             </p>
-            <h2 class="mt-4 text-2xl font-semibold tracking-tight text-black">
+            <h2 class="mt-4 text-[2rem] font-semibold tracking-tight text-black">
               Build a widget from available data
             </h2>
-            <p class="mt-2 text-sm leading-relaxed text-black/55">
+            <p class="mt-2 text-[16px] leading-relaxed text-black/55">
               Choose a data source, metric, dimension, and visualization. The builder only exposes combinations that are available in the current demo model.
             </p>
           </div>
-          <button type="button" class="nav-link text-sm font-semibold" @click="emit('close')">
+          <button type="button" class="nav-link text-[16px] font-semibold" @click="emit('close')">
             Close
           </button>
         </div>
@@ -122,7 +122,7 @@ function saveWidget() {
           <div class="space-y-5">
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Data source</label>
+                <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Data source</label>
                 <select v-model="source" class="auth-input mt-2">
                   <option v-for="option in OVERVIEW_WIDGET_SOURCE_OPTIONS" :key="option.id" :value="option.id">
                     {{ option.label }}
@@ -130,7 +130,7 @@ function saveWidget() {
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Metric</label>
+                <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Metric</label>
                 <select v-model="metric" class="auth-input mt-2">
                   <option v-for="option in metricOptions" :key="option" :value="option">
                     {{ option.replaceAll("_", " ") }}
@@ -138,7 +138,7 @@ function saveWidget() {
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Dimension</label>
+                <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Dimension</label>
                 <select v-model="dimension" class="auth-input mt-2">
                   <option v-for="option in dimensionOptions" :key="option" :value="option">
                     {{ option.replaceAll("_", " ") }}
@@ -146,7 +146,7 @@ function saveWidget() {
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Visualization</label>
+                <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Visualization</label>
                 <select v-model="visualization" class="auth-input mt-2">
                   <option v-for="option in visualizationOptions" :key="option" :value="option">
                     {{ visualizationLabels[option] }}
@@ -154,7 +154,7 @@ function saveWidget() {
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Widget size</label>
+                <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Widget size</label>
                 <select v-model="size" class="auth-input mt-2">
                   <option value="xs">Compact KPI</option>
                   <option value="sm">Small</option>
@@ -164,7 +164,7 @@ function saveWidget() {
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Placement</label>
+                <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Placement</label>
                 <select v-model="placement" class="auth-input mt-2">
                   <option value="top">Top of dashboard</option>
                   <option value="bottom">Bottom of dashboard</option>
@@ -174,7 +174,7 @@ function saveWidget() {
             </div>
 
             <div v-if="placement === 'after'">
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Placement target</label>
+              <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Placement target</label>
               <select v-model="afterWidgetId" class="auth-input mt-2">
                 <option disabled value="">
                   Select a widget
@@ -186,35 +186,35 @@ function saveWidget() {
             </div>
 
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Widget title</label>
+              <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Widget title</label>
               <input v-model="title" class="auth-input mt-2" type="text">
             </div>
 
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Description</label>
+              <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Description</label>
               <textarea v-model="description" class="auth-input mt-2 min-h-[7rem] resize-y" />
             </div>
           </div>
 
           <div class="surface-soft rounded-2xl p-5">
-            <p class="text-xs font-bold uppercase tracking-wide text-black/45">
+            <p class="text-[13px] font-bold uppercase tracking-wide text-black/45">
               Available fields
             </p>
-            <p class="mt-3 text-sm leading-relaxed text-black/58">
+            <p class="mt-3 text-[16px] leading-relaxed text-black/58">
               {{ sourceConfig.description }}
             </p>
             <div class="mt-5">
-              <p class="text-xs font-bold uppercase tracking-wide text-black/45">Metrics</p>
+              <p class="text-[13px] font-bold uppercase tracking-wide text-black/45">Metrics</p>
               <div class="mt-2 flex flex-wrap gap-2">
-                <span v-for="option in metricOptions" :key="option" class="rounded-full border border-black/8 px-3 py-1 text-xs text-black/60">
+                <span v-for="option in metricOptions" :key="option" class="rounded-full border border-black/8 px-3 py-1 text-[14px] text-black/60">
                   {{ option.replaceAll("_", " ") }}
                 </span>
               </div>
             </div>
             <div class="mt-5">
-              <p class="text-xs font-bold uppercase tracking-wide text-black/45">Dimensions</p>
+              <p class="text-[13px] font-bold uppercase tracking-wide text-black/45">Dimensions</p>
               <div class="mt-2 flex flex-wrap gap-2">
-                <span v-for="option in dimensionOptions" :key="option" class="rounded-full border border-black/8 px-3 py-1 text-xs text-black/60">
+                <span v-for="option in dimensionOptions" :key="option" class="rounded-full border border-black/8 px-3 py-1 text-[14px] text-black/60">
                   {{ option.replaceAll("_", " ") }}
                 </span>
               </div>
@@ -223,16 +223,16 @@ function saveWidget() {
         </div>
 
         <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-black/8 pt-6">
-          <p class="text-sm text-black/50">
+          <p class="text-[15px] text-black/50">
             This will be saved to the current dashboard only.
           </p>
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold" @click="emit('close')">
+            <button type="button" class="button-secondary rounded-xl px-4 py-2 text-[15px] font-semibold" @click="emit('close')">
               Cancel
             </button>
             <button
               type="button"
-              class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              class="button-primary rounded-xl px-4 py-2 text-[15px] font-semibold text-white"
               :disabled="placement === 'after' && !afterWidgetId"
               @click="saveWidget"
             >

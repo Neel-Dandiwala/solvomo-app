@@ -13,10 +13,10 @@ defineProps<{
         <span class="eyebrow-dot" />
         {{ eyebrow }}
       </p>
-      <h1 class="mt-4 max-w-3xl text-2xl font-semibold tracking-tight sm:text-3xl">
+      <h1 class="mt-4 max-w-3xl text-[2rem] font-semibold tracking-tight sm:text-[2.4rem]">
         {{ title }}
       </h1>
-      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-black/55 sm:text-[15px]">
+      <p class="mt-3 max-w-2xl text-[16px] leading-relaxed text-black/55 sm:text-[17px]">
         {{ description }}
       </p>
     </div>

@@ -21,7 +21,7 @@ const steps = [
         class="flex gap-3 border-l border-black/6 pl-4 first:border-l-0 first:pl-0 sm:border-l sm:border-black/6 sm:pl-4 sm:first:border-l-0 sm:first:pl-0"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-[14px] font-bold transition-colors"
           :class="
             i < activeIndex
               ? 'border-[rgba(91,123,225,0.35)] bg-[rgba(91,123,225,0.1)] text-[rgba(30,40,90,0.9)]'
@@ -34,12 +34,12 @@ const steps = [
         </span>
         <div class="min-w-0">
           <p
-            class="text-sm font-semibold leading-tight"
+            class="text-[16px] font-semibold leading-tight"
             :class="i === activeIndex ? 'text-black' : i < activeIndex ? 'text-black/65' : 'text-black/40'"
           >
             {{ s.label }}
           </p>
-          <p class="mt-1 text-xs leading-snug text-black/45">
+          <p class="mt-1 text-[14px] leading-snug text-black/45">
             {{ s.caption }}
           </p>
         </div>
