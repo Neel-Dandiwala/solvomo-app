@@ -30,7 +30,7 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
     >
       <span class="min-w-0">
         <span class="sv-control-label block truncate">Workspace</span>
-        <span class="block truncate text-[16px] font-semibold text-black">{{ currentWorkspace?.name }}</span>
+        <span class="block truncate text-[15px] font-semibold text-black">{{ currentWorkspace?.name }}</span>
       </span>
       <ChevronDown class="ml-auto h-4 w-4 shrink-0 text-black/40" :stroke-width="1.9" aria-hidden="true" />
     </button>
@@ -43,12 +43,12 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         <li v-for="w in workspaces" :key="w.id">
           <button
             type="button"
-            class="flex w-full flex-col rounded-xl px-3 py-2.5 text-left text-[16px] hover:bg-black/[0.03]"
+            class="flex w-full flex-col rounded-xl px-3 py-2.5 text-left text-sm hover:bg-black/[0.03]"
             :class="w.id === currentWorkspace?.id ? 'bg-black/[0.035] font-semibold' : ''"
             role="option"
             @click="setWorkspace(w.id); open = false"
           >
-            <span class="text-[1rem] text-black">{{ w.name }}</span>
+            <span class="text-[0.95rem] text-black">{{ w.name }}</span>
           </button>
         </li>
       </ul>

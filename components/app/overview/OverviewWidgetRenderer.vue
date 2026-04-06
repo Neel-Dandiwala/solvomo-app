@@ -102,7 +102,7 @@ const donutStyle = computed(() => {
       </p>
       <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p
-          class="inline-flex min-h-[2.2rem] items-center rounded-full border px-3 py-1 text-[16px] font-semibold tracking-[-0.01em]"
+          class="inline-flex min-h-[2rem] items-center rounded-full border px-3 py-1 text-[14px] font-semibold tracking-[-0.01em]"
           :class="
             payload.kpi.tone === 'positive'
               ? 'border-[rgba(91,123,225,0.14)] bg-[rgba(91,123,225,0.08)] text-[rgba(30,58,138,0.86)]'
@@ -113,7 +113,7 @@ const donutStyle = computed(() => {
         >
           {{ payload.kpi.change }}
         </p>
-        <p class="text-[16px] text-black/56">
+        <p class="text-[14px] text-black/56">
           {{ payload.kpi.helper }}
         </p>
       </div>
@@ -123,7 +123,7 @@ const donutStyle = computed(() => {
       <template v-if="payload.visualization === 'bar'">
         <div class="sv-chart-panel">
           <div class="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <div class="hidden flex-col justify-between pb-8 pt-2 text-[14px] text-black/42 sm:flex">
+            <div class="hidden flex-col justify-between pb-8 pt-2 text-[12px] text-black/38 sm:flex">
               <span v-for="tick in chartTicks" :key="tick">{{ tick }}</span>
             </div>
             <div>
@@ -138,7 +138,7 @@ const donutStyle = computed(() => {
                       :style="{ height: `${(series.values[index] / chartMax) * 100}%` }"
                     />
                   </div>
-                  <span class="text-center text-[15px] font-medium text-black/56">{{ label }}</span>
+                  <span class="text-center text-[13px] font-medium text-black/56">{{ label }}</span>
                 </div>
               </div>
             </div>
@@ -150,8 +150,8 @@ const donutStyle = computed(() => {
         <div class="space-y-4">
           <div v-for="(label, index) in payload.labels" :key="label" class="sv-chart-panel space-y-3">
             <div class="flex items-center justify-between gap-4">
-              <span class="text-[16px] font-semibold text-black/76">{{ label }}</span>
-              <span class="text-[16px] font-medium text-black/58">
+              <span class="text-[14px] font-semibold text-black/76">{{ label }}</span>
+              <span class="text-[14px] font-medium text-black/58">
                 {{ formatScaleValue(payload.series.reduce((sum, series) => sum + (series.values[index] ?? 0), 0)) }}
               </span>
             </div>
@@ -163,7 +163,7 @@ const donutStyle = computed(() => {
                 :style="{ width: `${(series.values[index] / chartMax) * 100}%` }"
               />
             </div>
-            <div class="flex flex-wrap gap-3 text-[15px] text-black/56">
+            <div class="flex flex-wrap gap-3 text-[13px] text-black/56">
               <div v-for="series in payload.series" :key="series.label" class="flex items-center gap-2">
                 <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: colorValue(series.color) }" />
                 <span>{{ series.label }}</span>
@@ -176,7 +176,7 @@ const donutStyle = computed(() => {
       <template v-else>
         <div class="sv-chart-panel">
           <div class="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <div class="hidden flex-col justify-between pb-8 pt-2 text-[14px] text-black/42 sm:flex">
+            <div class="hidden flex-col justify-between pb-8 pt-2 text-[12px] text-black/38 sm:flex">
               <span v-for="tick in chartTicks" :key="tick">{{ tick }}</span>
             </div>
             <div class="min-w-0">
@@ -202,13 +202,13 @@ const donutStyle = computed(() => {
                   />
                 </g>
               </svg>
-              <div class="mt-4 flex flex-wrap items-center gap-4 text-[16px] text-black/58">
+              <div class="mt-4 flex flex-wrap items-center gap-4 text-[14px] text-black/58">
                 <div v-for="series in payload.series" :key="series.label" class="flex items-center gap-2">
                   <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: colorValue(series.color) }" />
                   <span class="font-medium">{{ series.label }}</span>
                 </div>
               </div>
-              <div class="mt-4 flex justify-between gap-4 text-[15px] text-black/52">
+              <div class="mt-4 flex justify-between gap-4 text-[13px] text-black/52">
                 <span v-for="label in payload.labels" :key="label" class="truncate">{{ label }}</span>
               </div>
             </div>
@@ -231,11 +231,11 @@ const donutStyle = computed(() => {
           <div v-for="segment in payload.segments" :key="segment.label" class="sv-card-inset flex items-center justify-between gap-3 rounded-2xl px-4 py-3.5">
             <div class="flex items-center gap-2">
               <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: colorValue(segment.color) }" />
-              <span class="text-[16px] font-medium text-black/72">{{ segment.label }}</span>
+              <span class="text-[14px] font-medium text-black/72">{{ segment.label }}</span>
             </div>
             <div class="text-right">
               <div class="text-[1rem] font-semibold text-black">{{ segment.value }}</div>
-              <div class="text-[14px] text-black/48">{{ segmentShare(segment.value) }}</div>
+              <div class="text-[12px] text-black/48">{{ segmentShare(segment.value) }}</div>
             </div>
           </div>
         </div>
@@ -244,10 +244,10 @@ const donutStyle = computed(() => {
 
     <template v-else-if="payload.kind === 'table'">
       <div class="overflow-hidden rounded-[1.25rem] border border-black/8">
-        <table class="min-w-full text-left text-[16px]">
+        <table class="min-w-full text-left text-[15px]">
           <thead class="bg-black/[0.02]">
             <tr>
-              <th v-for="column in payload.columns" :key="column.key" class="px-5 py-3.5 text-[14px] font-semibold uppercase tracking-[0.08em] text-black/52">
+              <th v-for="column in payload.columns" :key="column.key" class="px-5 py-3.5 text-[12px] font-semibold uppercase tracking-[0.08em] text-black/52">
                 {{ column.label }}
               </th>
             </tr>
@@ -273,10 +273,10 @@ const donutStyle = computed(() => {
           <p class="text-[1.02rem] font-semibold tracking-[-0.025em] text-black">
             {{ item.title }}
           </p>
-          <p class="mt-3 text-[16px] leading-7 text-black/64">
+          <p class="mt-3 text-[15px] leading-7 text-black/64">
             {{ item.summary }}
           </p>
-          <NuxtLink v-if="item.linkLabel && item.linkTo" :to="item.linkTo" class="nav-link mt-5 inline-flex text-[16px] font-semibold">
+          <NuxtLink v-if="item.linkLabel && item.linkTo" :to="item.linkTo" class="nav-link mt-5 inline-flex text-[15px] font-semibold">
             {{ item.linkLabel }}
           </NuxtLink>
         </article>
@@ -294,9 +294,9 @@ const donutStyle = computed(() => {
             <p class="text-[1rem] font-semibold tracking-[-0.025em] text-black">
               {{ item.title }}
             </p>
-            <span class="text-[15px] text-black/46">{{ item.createdAt }}</span>
+            <span class="text-[13px] text-black/46">{{ item.createdAt }}</span>
           </div>
-          <p class="mt-3 text-[16px] leading-7 text-black/64">
+          <p class="mt-3 text-[15px] leading-7 text-black/64">
             {{ item.summary }}
           </p>
         </article>
@@ -307,15 +307,15 @@ const donutStyle = computed(() => {
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="sv-card-inset rounded-[1.5rem] px-5 py-5">
           <p class="sv-section-title">Connected</p>
-          <p class="mt-3 text-[2rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.connected }}</p>
+          <p class="mt-3 text-[1.85rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.connected }}</p>
         </div>
         <div class="sv-card-inset rounded-[1.5rem] px-5 py-5">
           <p class="sv-section-title">Syncing</p>
-          <p class="mt-3 text-[2rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.syncing }}</p>
+          <p class="mt-3 text-[1.85rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.syncing }}</p>
         </div>
         <div class="sv-card-inset rounded-[1.5rem] px-5 py-5">
           <p class="sv-section-title">Needs attention</p>
-          <p class="mt-3 text-[2rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.attention }}</p>
+          <p class="mt-3 text-[1.85rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.attention }}</p>
         </div>
       </div>
     </template>

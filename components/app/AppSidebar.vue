@@ -60,7 +60,7 @@ function isActive(to: string) {
           />
         </div>
         <div v-if="!sidebarCollapsed" class="min-w-0">
-          <span class="brand-wordmark block truncate text-[1.08rem] font-bold tracking-tight">Solvomo</span>
+          <span class="brand-wordmark block truncate text-[1rem] font-bold tracking-tight">Solvomo</span>
           <span class="sv-meta block truncate">Operator system</span>
         </div>
       </NuxtLink>
@@ -72,7 +72,7 @@ function isActive(to: string) {
         v-for="item in sidebarNav"
         :key="item.to"
         :to="item.to"
-        class="app-sidebar-link group flex items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-[17px] font-semibold tracking-[-0.015em] transition-colors"
+        class="app-sidebar-link group flex items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-[15px] font-semibold tracking-[-0.015em] transition-colors"
         :class="[
           isActive(item.to) ? 'app-sidebar-link--active' : 'text-black/70 hover:bg-black/[0.03] hover:text-black',
           sidebarCollapsed ? 'justify-center px-0' : '',
@@ -91,7 +91,7 @@ function isActive(to: string) {
     <div class="border-t border-black/8 px-3 py-3.5 lg:px-3.5">
       <button
         type="button"
-        class="app-sidebar-link group flex w-full items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-[17px] font-semibold tracking-[-0.015em] text-black/70 transition-colors hover:bg-black/[0.03] hover:text-black"
+        class="app-sidebar-link group flex w-full items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-[15px] font-semibold tracking-[-0.015em] text-black/70 transition-colors hover:bg-black/[0.03] hover:text-black"
         :class="sidebarCollapsed ? 'justify-center px-0' : ''"
         @click="toggleSidebar"
       >

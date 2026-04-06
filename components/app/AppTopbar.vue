@@ -53,7 +53,7 @@ onUnmounted(() => document.removeEventListener("click", onBrandDocClick));
         <p class="sv-meta hidden sm:block">
           {{ currentBrand?.name }}
         </p>
-        <h2 class="truncate text-[1.55rem] font-semibold tracking-[-0.045em] text-black lg:text-[1.9rem]">
+        <h2 class="truncate text-[1.45rem] font-semibold tracking-[-0.045em] text-black lg:text-[1.75rem]">
           {{ pageTitle }}
         </h2>
       </div>
@@ -76,7 +76,7 @@ onUnmounted(() => document.removeEventListener("click", onBrandDocClick));
         >
           <span class="min-w-0">
             <span class="sv-control-label block truncate">Brand</span>
-            <span class="block truncate text-[16px] font-semibold text-black">{{ currentBrand?.name }}</span>
+            <span class="block truncate text-[15px] font-semibold text-black">{{ currentBrand?.name }}</span>
           </span>
           <ChevronDown class="ml-auto h-4 w-4 shrink-0 text-black/40" :stroke-width="1.9" aria-hidden="true" />
         </button>
@@ -96,8 +96,8 @@ onUnmounted(() => document.removeEventListener("click", onBrandDocClick));
                 :class="b.id === currentBrand?.id ? 'bg-black/[0.035] font-semibold' : ''"
                 @click="setBrand(b.id); brandOpen = false"
               >
-                <span class="text-[1rem] text-black">{{ b.name }}</span>
-                <span class="mt-1 text-[15px] leading-relaxed text-black/55">{{ b.currency }} · {{ b.attributionPreference }}</span>
+                <span class="text-[0.95rem] text-black">{{ b.name }}</span>
+                <span class="mt-1 text-[13px] leading-relaxed text-black/55">{{ b.currency }} · {{ b.attributionPreference }}</span>
               </button>
             </li>
           </ul>

@@ -12,7 +12,7 @@ function switchToProduction() {
     role="status"
     aria-live="polite"
   >
-    <p class="max-w-4xl text-[16px] font-semibold text-black/80">
+    <p class="max-w-4xl text-sm font-semibold text-black/80">
       <span class="eyebrow mr-2 rounded-full">
         <span class="eyebrow-dot" />
         Playground
@@ -21,7 +21,7 @@ function switchToProduction() {
     </p>
     <button
       type="button"
-      class="button-secondary shrink-0 rounded-lg px-3 py-1.5 text-[14px] font-semibold"
+      class="button-secondary shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold"
       @click="switchToProduction"
     >
       Switch to production

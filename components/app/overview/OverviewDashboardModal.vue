@@ -55,14 +55,14 @@ function saveDashboard() {
               <span class="eyebrow-dot" />
               Create dashboard
             </p>
-            <h2 class="mt-4 text-[2rem] font-semibold tracking-tight text-black">
+            <h2 class="mt-4 text-2xl font-semibold tracking-tight text-black">
               Create a custom Overview dashboard
             </h2>
-            <p class="mt-2 text-[16px] leading-relaxed text-black/55">
+            <p class="mt-2 text-sm leading-relaxed text-black/55">
               Start from an executive template, operator layout, or a blank canvas, then choose the widgets you want loaded by default.
             </p>
           </div>
-          <button type="button" class="nav-link text-[16px] font-semibold" @click="emit('close')">
+          <button type="button" class="nav-link text-sm font-semibold" @click="emit('close')">
             Close
           </button>
         </div>
@@ -70,11 +70,11 @@ function saveDashboard() {
         <div class="mt-8 space-y-6">
           <div class="grid gap-5 sm:grid-cols-2">
             <div>
-              <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Dashboard name</label>
+              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Dashboard name</label>
               <input v-model="name" class="auth-input mt-2" type="text" placeholder="Q2 executive view">
             </div>
             <div>
-              <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Layout template</label>
+              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Layout template</label>
               <select v-model="template" class="auth-input mt-2">
                 <option value="executive">Executive summary</option>
                 <option value="operator">Operator cockpit</option>
@@ -84,12 +84,12 @@ function saveDashboard() {
           </div>
 
           <div>
-            <label class="block text-[13px] font-bold uppercase tracking-wide text-black/45">Description</label>
+            <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Description</label>
             <textarea v-model="description" class="auth-input mt-2 min-h-[6rem] resize-y" placeholder="What this dashboard is for" />
           </div>
 
           <div>
-            <p class="text-[13px] font-bold uppercase tracking-wide text-black/45">
+            <p class="text-xs font-bold uppercase tracking-wide text-black/45">
               Default widgets
             </p>
             <div class="mt-3 grid gap-3 sm:grid-cols-2">
@@ -105,22 +105,22 @@ function saveDashboard() {
                 "
                 @click="toggleWidget(widget.id)"
               >
-                <span class="block text-[16px] font-semibold text-black">{{ widget.title }}</span>
-                <span class="mt-2 block text-[15px] leading-relaxed text-black/55">{{ widget.description }}</span>
+                <span class="block text-sm font-semibold text-black">{{ widget.title }}</span>
+                <span class="mt-2 block text-sm leading-relaxed text-black/55">{{ widget.description }}</span>
               </button>
             </div>
           </div>
         </div>
 
         <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-black/8 pt-6">
-          <p class="text-[15px] text-black/50">
+          <p class="text-sm text-black/50">
             Dashboards are stored in local overview state for this demo.
           </p>
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="button-secondary rounded-xl px-4 py-2 text-[15px] font-semibold" @click="emit('close')">
+            <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold" @click="emit('close')">
               Cancel
             </button>
-            <button type="button" class="button-primary rounded-xl px-4 py-2 text-[15px] font-semibold text-white" @click="saveDashboard">
+            <button type="button" class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white" @click="saveDashboard">
               Save dashboard
             </button>
           </div>

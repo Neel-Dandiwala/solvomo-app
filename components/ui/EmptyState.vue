@@ -13,7 +13,7 @@ defineProps<{
     <h3 class="text-[1.05rem] font-semibold tracking-[-0.025em] text-black">
       {{ title }}
     </h3>
-    <p v-if="description" class="mx-auto mt-3 max-w-md text-[16px] leading-7 text-black/58">
+    <p v-if="description" class="mx-auto mt-3 max-w-md text-[15px] leading-7 text-black/58">
       {{ description }}
     </p>
     <div v-if="$slots.default" class="mt-7 flex flex-wrap justify-center gap-3">

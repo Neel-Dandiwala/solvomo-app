@@ -20,14 +20,14 @@ function cell(row: Record<string, unknown>, key: string) {
 <template>
   <div class="data-table-wrap overflow-hidden rounded-[1.5rem] border border-black/8 bg-white">
     <div class="overflow-x-auto">
-      <table class="data-table min-w-full text-left text-[17px]">
+      <table class="data-table min-w-full text-left text-[15px]">
         <thead>
           <tr class="data-table-head-row">
             <th
               v-for="col in columns"
               :key="col.key"
               scope="col"
-              class="data-table-th px-6 py-4 text-[14px] font-semibold uppercase tracking-[0.08em] text-black/52"
+              class="data-table-th px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-black/52"
               :class="col.headerClass"
             >
               {{ col.label }}
@@ -36,7 +36,7 @@ function cell(row: Record<string, unknown>, key: string) {
         </thead>
         <tbody>
           <tr v-if="!rows.length">
-            <td :colspan="columns.length" class="data-table-empty px-6 py-14 text-center text-[17px] text-black/52">
+            <td :colspan="columns.length" class="data-table-empty px-6 py-14 text-center text-[15px] text-black/52">
               {{ emptyLabel ?? "No rows yet." }}
             </td>
           </tr>

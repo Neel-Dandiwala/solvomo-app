@@ -41,12 +41,12 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         <p class="sv-control-label px-3 pt-2">
           {{ auth.displayName }}
         </p>
-        <p class="px-3 pb-2 pt-1 text-[15px] text-black/52">
+        <p class="px-3 pb-2 pt-1 text-[13px] text-black/52">
           {{ auth.displayEmail }}
         </p>
         <NuxtLink
           to="/app/settings"
-          class="block rounded-xl px-3 py-2.5 text-[16px] font-medium hover:bg-black/[0.03]"
+          class="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-black/[0.03]"
           role="menuitem"
           @click="open = false"
         >
@@ -54,7 +54,7 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
         </NuxtLink>
         <button
           type="button"
-          class="block w-full rounded-xl px-3 py-2.5 text-left text-[16px] font-medium hover:bg-black/[0.03]"
+          class="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-black/[0.03]"
           role="menuitem"
           @click="signOut"
         >

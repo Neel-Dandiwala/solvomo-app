@@ -31,7 +31,7 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
       <EnvironmentBadge :kind="currentEnvironment?.kind ?? 'production'" class="shrink-0" />
       <span class="min-w-0">
         <span class="sv-control-label block truncate">Environment</span>
-        <span class="block truncate text-[16px] font-semibold text-black">{{ currentEnvironment?.name }}</span>
+        <span class="block truncate text-[15px] font-semibold text-black">{{ currentEnvironment?.name }}</span>
       </span>
       <ChevronDown class="ml-auto h-4 w-4 shrink-0 text-black/40" :stroke-width="1.9" aria-hidden="true" />
     </button>
@@ -47,13 +47,13 @@ onUnmounted(() => document.removeEventListener("click", onDocClick));
           <li v-for="env in environmentsForBrand" :key="env.id">
             <button
               type="button"
-              class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[16px] hover:bg-black/[0.03]"
+              class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-black/[0.03]"
               :class="env.id === currentEnvironment?.id ? 'bg-black/[0.035]' : ''"
               @click="setEnvironment(env.id); open = false"
             >
               <EnvironmentBadge :kind="env.kind" />
               <span class="min-w-0">
-                <span class="block truncate text-[16px] font-medium text-black">{{ env.name }}</span>
+                <span class="block truncate font-medium text-black">{{ env.name }}</span>
               </span>
             </button>
           </li>
