@@ -11,11 +11,11 @@ const props = withDefaults(
 );
 
 const chartBarAreaClass = computed(() =>
-  props.compact ? "flex h-40 items-end gap-2 sm:gap-3" : "flex h-52 items-end gap-3 lg:h-60",
+  props.compact ? "flex h-[11.5rem] items-end gap-1.5 sm:gap-2" : "flex h-48 items-end gap-2 sm:h-52",
 );
 
 const chartLineSvgClass = computed(() =>
-  props.compact ? "h-36 w-full overflow-visible sm:h-40" : "h-52 w-full overflow-visible lg:h-60",
+  props.compact ? "h-[10rem] w-full overflow-visible sm:h-[11rem]" : "h-52 w-full overflow-visible sm:h-56 lg:h-[15rem]",
 );
 
 const tableRowsView = computed(() => {
@@ -162,7 +162,10 @@ const donutStyle = computed(() => {
         >
           {{ payload.kpi.change }}
         </p>
-        <p class="max-w-[12rem] text-right text-[12px] text-black/52 sm:text-[14px]">
+        <p
+          v-if="!compact"
+          class="max-w-[12rem] text-right text-[12px] text-black/52 sm:text-[14px]"
+        >
           {{ payload.kpi.helper }}
         </p>
       </div>
@@ -170,24 +173,24 @@ const donutStyle = computed(() => {
 
     <template v-else-if="payload.kind === 'chart'">
       <template v-if="payload.visualization === 'bar'">
-        <div class="sv-chart-panel">
-          <div class="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <div class="hidden flex-col justify-between pb-8 pt-2 text-[12px] text-black/38 sm:flex">
+        <div class="min-w-0">
+          <div class="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-3">
+            <div class="hidden flex-col justify-between pb-6 pt-1 text-[11px] tabular-nums text-black/35 sm:flex">
               <span v-for="tick in chartTicks" :key="tick">{{ tick }}</span>
             </div>
             <div>
               <div :class="chartBarAreaClass">
-                <div v-for="(label, index) in payload.labels" :key="label" class="flex min-w-0 flex-1 flex-col items-center gap-3">
-                  <div class="flex h-full w-full items-end justify-center gap-1.5 rounded-[1.1rem] bg-black/[0.02] px-1.5 pt-4">
+                <div v-for="(label, index) in payload.labels" :key="label" class="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+                  <div class="flex h-full w-full items-end justify-center gap-1 px-0.5 pt-2">
                     <div
                       v-for="series in payload.series"
                       :key="`${label}-${series.label}`"
-                      class="w-full rounded-t-[1rem]"
+                      class="w-full max-w-[2.25rem] rounded-t-md sm:max-w-none sm:rounded-t-lg"
                       :class="colorClass(series.color)"
                       :style="{ height: `${(series.values[index] / chartMax) * 100}%` }"
                     />
                   </div>
-                  <span class="text-center text-[13px] font-medium text-black/56">{{ label }}</span>
+                  <span class="text-center text-[11px] font-medium leading-tight text-black/50">{{ label }}</span>
                 </div>
               </div>
             </div>
@@ -196,15 +199,15 @@ const donutStyle = computed(() => {
       </template>
 
       <template v-else-if="payload.visualization === 'stacked_bar'">
-        <div class="space-y-4">
-          <div v-for="(label, index) in payload.labels" :key="label" class="sv-chart-panel space-y-3">
-            <div class="flex items-center justify-between gap-4">
-              <span class="text-[14px] font-semibold text-black/76">{{ label }}</span>
-              <span class="text-[14px] font-medium text-black/58">
+        <div class="space-y-3">
+          <div v-for="(label, index) in payload.labels" :key="label" class="space-y-2 border-b border-black/[0.05] pb-3 last:border-0 last:pb-0">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[13px] font-semibold text-black/75">{{ label }}</span>
+              <span class="text-[12px] font-medium tabular-nums text-black/50">
                 {{ formatScaleValue(payload.series.reduce((sum, series) => sum + (series.values[index] ?? 0), 0)) }}
               </span>
             </div>
-            <div class="flex h-4 overflow-hidden rounded-full bg-black/[0.05]">
+            <div class="flex h-3 overflow-hidden rounded-full bg-black/[0.04]">
               <div
                 v-for="series in payload.series"
                 :key="`${label}-${series.label}`"
@@ -212,9 +215,9 @@ const donutStyle = computed(() => {
                 :style="{ width: `${(series.values[index] / chartMax) * 100}%` }"
               />
             </div>
-            <div class="flex flex-wrap gap-3 text-[13px] text-black/56">
-              <div v-for="series in payload.series" :key="series.label" class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: colorValue(series.color) }" />
+            <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-black/50">
+              <div v-for="series in payload.series" :key="series.label" class="flex items-center gap-1.5">
+                <span class="h-2 w-2 shrink-0 rounded-full" :style="{ backgroundColor: colorValue(series.color) }" />
                 <span>{{ series.label }}</span>
               </div>
             </div>
@@ -223,42 +226,42 @@ const donutStyle = computed(() => {
       </template>
 
       <template v-else>
-        <div class="sv-chart-panel">
-          <div class="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <div class="hidden flex-col justify-between pb-8 pt-2 text-[12px] text-black/38 sm:flex">
+        <div class="min-w-0">
+          <div class="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-3">
+            <div class="hidden flex-col justify-between pb-6 pt-1 text-[11px] tabular-nums text-black/35 sm:flex">
               <span v-for="tick in chartTicks" :key="tick">{{ tick }}</span>
             </div>
             <div class="min-w-0">
               <svg viewBox="0 0 100 64" :class="chartLineSvgClass">
-                <line x1="0" y1="14" x2="100" y2="14" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
-                <line x1="0" y1="28" x2="100" y2="28" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
-                <line x1="0" y1="42" x2="100" y2="42" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
-                <line x1="0" y1="56" x2="100" y2="56" stroke="rgba(0,0,0,0.08)" stroke-width="1" />
+                <line x1="0" y1="14" x2="100" y2="14" stroke="rgba(0,0,0,0.04)" stroke-width="1" />
+                <line x1="0" y1="28" x2="100" y2="28" stroke="rgba(0,0,0,0.04)" stroke-width="1" />
+                <line x1="0" y1="42" x2="100" y2="42" stroke="rgba(0,0,0,0.04)" stroke-width="1" />
+                <line x1="0" y1="56" x2="100" y2="56" stroke="rgba(0,0,0,0.06)" stroke-width="1" />
                 <g v-for="series in payload.series" :key="series.label">
                   <path
                     v-if="payload.visualization === 'area' && series === payload.series[0]"
                     :d="buildAreaPath(series.values)"
                     :fill="colorValue(series.color)"
-                    opacity="0.14"
+                    opacity="0.12"
                   />
                   <polyline
                     fill="none"
                     :stroke="colorValue(series.color)"
-                    stroke-width="2.4"
+                    stroke-width="2.2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     :points="buildLinePoints(series.values)"
                   />
                 </g>
               </svg>
-              <div class="mt-4 flex flex-wrap items-center gap-4 text-[14px] text-black/58">
-                <div v-for="series in payload.series" :key="series.label" class="flex items-center gap-2">
-                  <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: colorValue(series.color) }" />
+              <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-black/52">
+                <div v-for="series in payload.series" :key="series.label" class="flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full" :style="{ backgroundColor: colorValue(series.color) }" />
                   <span class="font-medium">{{ series.label }}</span>
                 </div>
               </div>
-              <div class="mt-4 flex justify-between gap-4 text-[13px] text-black/52">
-                <span v-for="label in payload.labels" :key="label" class="truncate">{{ label }}</span>
+              <div class="mt-1.5 flex justify-between gap-2 text-[11px] text-black/45">
+                <span v-for="label in payload.labels" :key="label" class="min-w-0 truncate">{{ label }}</span>
               </div>
             </div>
           </div>
@@ -267,31 +270,31 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'donut'">
-      <div class="grid gap-4 lg:grid-cols-[11rem_minmax(0,1fr)] lg:items-center" :class="compact ? 'lg:gap-4' : 'lg:gap-6'">
+      <div class="grid gap-3 lg:grid-cols-[9.5rem_minmax(0,1fr)] lg:items-center lg:gap-4">
         <div
-          class="mx-auto flex items-center justify-center rounded-full border border-black/6"
-          :class="compact ? 'h-36 w-36' : 'h-44 w-44'"
+          class="mx-auto flex items-center justify-center rounded-full border border-black/[0.07]"
+          :class="compact ? 'h-[7.25rem] w-[7.25rem]' : 'h-36 w-36'"
           :style="donutStyle"
         >
           <div
             class="flex flex-col items-center justify-center rounded-full bg-white"
-            :class="compact ? 'h-24 w-24' : 'h-28 w-28'"
+            :class="compact ? 'h-[4.75rem] w-[4.75rem]' : 'h-[5.5rem] w-[5.5rem]'"
           >
-            <span class="sv-meta">Total</span>
-            <span class="mt-1 text-[1.5rem] font-semibold tracking-[-0.04em] text-black">
+            <span class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Total</span>
+            <span class="mt-0.5 text-lg font-semibold tracking-tight text-black sm:text-xl">
               {{ donutTotal }}
             </span>
           </div>
         </div>
-        <div class="space-y-3">
-          <div v-for="segment in payload.segments" :key="segment.label" class="sv-card-inset flex items-center justify-between gap-3 rounded-2xl px-4 py-3.5">
-            <div class="flex items-center gap-2">
-              <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: colorValue(segment.color) }" />
-              <span class="text-[14px] font-medium text-black/72">{{ segment.label }}</span>
+        <div class="min-w-0 divide-y divide-black/[0.06]">
+          <div v-for="segment in payload.segments" :key="segment.label" class="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0">
+            <div class="flex min-w-0 items-center gap-2">
+              <span class="h-2 w-2 shrink-0 rounded-full" :style="{ backgroundColor: colorValue(segment.color) }" />
+              <span class="truncate text-[13px] font-medium text-black/70">{{ segment.label }}</span>
             </div>
-            <div class="text-right">
-              <div class="text-[1rem] font-semibold text-black">{{ segment.value }}</div>
-              <div class="text-[12px] text-black/48">{{ segmentShare(segment.value) }}</div>
+            <div class="shrink-0 text-right">
+              <div class="text-[13px] font-semibold tabular-nums text-black">{{ segment.value }}</div>
+              <div class="text-[11px] text-black/45">{{ segmentShare(segment.value) }}</div>
             </div>
           </div>
         </div>
@@ -299,18 +302,18 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'table'">
-      <div class="overflow-hidden rounded-[1.25rem] border border-black/8">
-        <table class="min-w-full text-left text-[15px]">
-          <thead class="bg-black/[0.02]">
-            <tr>
-              <th v-for="column in payload.columns" :key="column.key" class="px-5 py-3.5 text-[12px] font-semibold uppercase tracking-[0.08em] text-black/52">
+      <div class="overflow-x-auto rounded-lg border border-black/[0.07]">
+        <table class="min-w-full text-left text-[13px]">
+          <thead>
+            <tr class="border-b border-black/[0.06] bg-black/[0.02]">
+              <th v-for="column in payload.columns" :key="column.key" class="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-black/45">
                 {{ column.label }}
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, index) in tableRowsView" :key="index">
-              <td v-for="column in payload.columns" :key="column.key" class="border-t border-black/6 px-5 py-4 text-black/82">
+            <tr v-for="(row, index) in tableRowsView" :key="index" class="border-b border-black/[0.04] last:border-0">
+              <td v-for="column in payload.columns" :key="column.key" class="px-3 py-2 text-black/80">
                 {{ row[column.key] }}
               </td>
             </tr>
@@ -340,20 +343,19 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'alerts'">
-      <div :class="compact ? 'space-y-2.5' : 'space-y-3.5'">
+      <div class="divide-y divide-black/[0.06]">
         <article
           v-for="item in payload.items"
           :key="item.id"
-          class="sv-card-inset rounded-2xl px-4 py-3.5"
-          :class="compact ? '' : 'rounded-[1.5rem] px-5 py-4.5'"
+          class="py-2.5 first:pt-0 last:pb-0"
         >
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-[15px] font-semibold tracking-[-0.025em] text-black">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-[13px] font-semibold leading-snug text-black">
               {{ item.title }}
             </p>
-            <span class="shrink-0 text-[12px] text-black/46">{{ item.createdAt }}</span>
+            <span class="shrink-0 text-[11px] tabular-nums text-black/40">{{ item.createdAt }}</span>
           </div>
-          <p class="mt-2 text-[13px] leading-6 text-black/64" :class="compact ? '' : 'mt-3 text-[15px] leading-7'">
+          <p class="mt-1 text-[12px] leading-5 text-black/58">
             {{ item.summary }}
           </p>
         </article>
@@ -361,18 +363,18 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'connections'">
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div class="sv-card-inset rounded-[1.5rem] px-5 py-5">
-          <p class="sv-section-title">Connected</p>
-          <p class="mt-3 text-[1.85rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.connected }}</p>
+      <div class="flex divide-x divide-black/[0.06]">
+        <div class="min-w-0 flex-1 pr-3">
+          <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Connected</p>
+          <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.connected }}</p>
         </div>
-        <div class="sv-card-inset rounded-[1.5rem] px-5 py-5">
-          <p class="sv-section-title">Syncing</p>
-          <p class="mt-3 text-[1.85rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.syncing }}</p>
+        <div class="min-w-0 flex-1 px-3">
+          <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Syncing</p>
+          <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.syncing }}</p>
         </div>
-        <div class="sv-card-inset rounded-[1.5rem] px-5 py-5">
-          <p class="sv-section-title">Needs attention</p>
-          <p class="mt-3 text-[1.85rem] font-semibold tracking-[-0.055em] text-black">{{ payload.summary.attention }}</p>
+        <div class="min-w-0 flex-1 pl-3">
+          <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Attention</p>
+          <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.attention }}</p>
         </div>
       </div>
     </template>

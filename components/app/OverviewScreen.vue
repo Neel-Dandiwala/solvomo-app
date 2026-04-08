@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { LayoutTemplate } from "lucide-vue-next";
+import { ChevronDown, LayoutTemplate } from "lucide-vue-next";
 import OverviewDashboardModal from "~/components/app/overview/OverviewDashboardModal.vue";
 import OverviewLayoutEditorModal from "~/components/app/overview/OverviewLayoutEditorModal.vue";
 import OverviewWidgetBuilderModal from "~/components/app/overview/OverviewWidgetBuilderModal.vue";
 import OverviewWidgetCard from "~/components/app/overview/OverviewWidgetCard.vue";
 import OverviewWidgetRenderer from "~/components/app/overview/OverviewWidgetRenderer.vue";
-import OverviewSignalStrip from "~/components/app/overview/OverviewSignalStrip.vue";
 import type { OverviewWidgetPayload } from "~/composables/useOverviewWidgetPayloads";
 import type { OverviewInsight, OverviewWidgetConfig } from "~/types/mock";
 
@@ -14,23 +13,13 @@ type KpiCard = {
   payload: OverviewWidgetPayload;
 };
 
-const WIDGET_GRID: Record<string, string> = {
-  "w-trend-spend-revenue": "col-span-12 xl:col-span-8",
-  "w-alerts": "col-span-12 xl:col-span-4",
-  "w-platform-revenue": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-roi-platform": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-funnel": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-revenue-trend": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-conversion-trend": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-lead-source": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-roi-cluster": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-creatives-leaderboard": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-performance-changes": "col-span-12 sm:col-span-6 xl:col-span-4",
-  "w-spend-allocation": "col-span-12 sm:col-span-6 xl:col-span-6",
-  "w-connections": "col-span-12 sm:col-span-6 xl:col-span-6",
-  "ri-trend": "col-span-12 xl:col-span-8",
-  "ri-connections": "col-span-12 sm:col-span-6 xl:col-span-6",
-};
+/** Default surface: hero + attention + two supporting metrics — rest behind “More”. */
+const PRIMARY_CHART_ORDER = [
+  "w-trend-spend-revenue",
+  "w-alerts",
+  "w-roi-platform",
+  "w-funnel",
+] as const;
 
 const curatedKpiIds = ["spend", "revenue", "roi", "cac", "pipeline_revenue"] as const;
 
@@ -53,6 +42,7 @@ const dashboardModalOpen = ref(false);
 const layoutEditorOpen = ref(false);
 const selectedRange = ref<4 | 7 | 0>(7);
 const tableDetailId = ref<string | null>(null);
+const moreExpanded = ref(false);
 
 const rangeOptions = [
   { id: 4, label: "4D" },
@@ -79,15 +69,59 @@ const chartWidgets = computed(() =>
 );
 
 const executiveBullets = computed(() => overview.value?.executiveBullets ?? []);
-
 const insightItems = computed(() => overview.value?.insights ?? []);
 
-const heroCallout = computed(() => {
-  const list = insightItems.value;
-  const risk = list.find((i: OverviewInsight) => i.kind === "risk" && i.because);
-  if (risk?.because) return risk.because;
-  return list.find((i: OverviewInsight) => i.because)?.because ?? null;
+const primaryCharts = computed(() => {
+  const charts = chartWidgets.value;
+  const ordered = PRIMARY_CHART_ORDER.map((id) => charts.find((w) => w.id === id)).filter(
+    Boolean,
+  ) as OverviewWidgetConfig[];
+  if (ordered.length) return ordered;
+  const first = charts[0];
+  if (!first) return [];
+  const hero = first.size === "lg" ? first : charts.find((w) => w.size === "lg") ?? first;
+  const rest = charts.filter((w) => w.id !== hero.id).slice(0, 3);
+  return [hero, ...rest];
 });
+
+const secondaryCharts = computed(() => {
+  const ids = new Set(primaryCharts.value.map((w) => w.id));
+  return chartWidgets.value.filter((w) => !ids.has(w.id));
+});
+
+const heroSignalLinks = computed(() =>
+  insightItems.value
+    .filter((i: OverviewInsight) => i.linkTo)
+    .slice(0, 4)
+    .map((i: OverviewInsight) => ({
+      label: (i.headline ?? i.title).length > 56 ? `${(i.headline ?? i.title).slice(0, 54)}…` : (i.headline ?? i.title),
+      to: i.linkTo!,
+    })),
+);
+
+const heroRiskLine = computed(
+  () => insightItems.value.find((i: OverviewInsight) => i.kind === "risk")?.because ?? null,
+);
+
+function widgetCallout(widget: OverviewWidgetConfig): string | null {
+  if (widget.id === "w-trend-spend-revenue" || widget.size === "lg") return null;
+  const list = insightItems.value;
+  if (widget.id === "w-roi-platform")
+    return list.find((i: OverviewInsight) => i.relatedMetric === "roi")?.because ?? null;
+  if (widget.id === "w-funnel")
+    return list.find((i: OverviewInsight) => i.id === "ins-4")?.because ?? null;
+  return null;
+}
+
+function primaryGridClass(_widget: OverviewWidgetConfig, index: number) {
+  const list = primaryCharts.value;
+  if (list.length === 1) return "col-span-12";
+  const first = list[0];
+  const hasHero = Boolean(first && (first.id === "w-trend-spend-revenue" || first.size === "lg"));
+  if (index === 0 && hasHero) return "col-span-12 xl:col-span-8";
+  if (index === 1 && hasHero) return "col-span-12 xl:col-span-4";
+  return "col-span-12 md:col-span-6";
+}
 
 function widgetPayload(widgetId: string) {
   const widget = allWidgets.value.find((item: OverviewWidgetConfig) => item.id === widgetId);
@@ -102,7 +136,7 @@ const executiveKpiCards = computed(() =>
 );
 
 function gridClassFor(widget: OverviewWidgetConfig) {
-  return WIDGET_GRID[widget.id] ?? "col-span-12 sm:col-span-6 xl:col-span-4";
+  return "col-span-12 sm:col-span-6 xl:col-span-4";
 }
 
 function isHeroWidget(widget: OverviewWidgetConfig) {
@@ -131,10 +165,12 @@ function onLayoutSave(ids: string[]) {
   setDashboardWidgetOrder(ids);
   layoutEditorOpen.value = false;
 }
+
+const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "));
 </script>
 
 <template>
-  <div class="max-w-full space-y-5 overflow-x-hidden pb-2 lg:space-y-6">
+  <div class="max-w-full space-y-3 overflow-x-hidden pb-2 lg:space-y-4">
     <MockDataState :status="dataStatus" />
 
     <PageHeader title="Overview" dense>
@@ -151,7 +187,7 @@ function onLayoutSave(ids: string[]) {
             </option>
           </select>
           <button type="button" class="app-button button-secondary h-10 px-3 text-sm" @click="layoutEditorOpen = true">
-            Edit layout
+            Layout
           </button>
           <button type="button" class="app-button button-secondary h-10 px-3 text-sm" @click="widgetBuilderOpen = true">
             Add widget
@@ -168,66 +204,92 @@ function onLayoutSave(ids: string[]) {
       </template>
     </PageHeader>
 
-    <p v-if="currentDashboard?.name" class="text-[13px] font-medium text-black/50">
-      {{ currentDashboard.name }}
-    </p>
-
-    <!-- Executive snapshot -->
-    <section v-if="executiveKpiCards.length" class="space-y-3">
-      <h2 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
-        Executive snapshot
-      </h2>
-      <div class="grid grid-cols-12 gap-4 lg:grid-cols-5">
-      <SurfaceCard
-        v-for="card in executiveKpiCards"
-        :key="card.widget.id"
-        variant="frame"
-        padding="sm"
-        class="col-span-12 min-w-0 sm:col-span-6 lg:col-span-1"
-      >
-        <p class="sv-kpi-label">
-          {{ card.widget.title }}
-        </p>
-        <div class="mt-3">
-          <OverviewWidgetRenderer :payload="card.payload" compact />
+    <!-- Single operating strip: context + KPIs (no stacked section titles) -->
+    <SurfaceCard
+      v-if="executiveKpiCards.length || currentDashboard?.name || bulletLine"
+      variant="soft"
+      padding="sm"
+      class="border border-black/[0.05]"
+    >
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+        <div class="min-w-0 lg:max-w-[42%]">
+          <p class="text-[13px] font-semibold text-black">
+            {{ currentDashboard?.name ?? "Overview" }}
+          </p>
+          <p v-if="bulletLine" class="mt-1 text-[12px] leading-snug text-black/55">
+            {{ bulletLine }}
+          </p>
         </div>
-      </SurfaceCard>
-      </div>
-    </section>
-
-    <section v-if="executiveBullets.length" class="grid grid-cols-12 gap-4">
-      <ul class="col-span-12 flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-1">
-        <li
-          v-for="(line, idx) in executiveBullets.slice(0, 3)"
-          :key="idx"
-          class="flex gap-2 text-[13px] font-medium leading-snug text-black/72"
+        <div
+          class="grid min-w-0 flex-1 grid-cols-2 gap-3 border-t border-black/[0.06] pt-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-0 lg:border-t-0 lg:pt-0 xl:divide-x xl:divide-black/[0.06]"
         >
-          <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-black/35" aria-hidden="true" />
-          {{ line }}
-        </li>
-      </ul>
-    </section>
-
-    <!-- Signals + charts -->
-    <section v-if="chartWidgets.length" class="grid grid-cols-12 gap-4">
-      <div v-if="insightItems.length" class="col-span-12 rounded-2xl border border-black/[0.06] bg-white/80 px-4 py-3">
-        <OverviewSignalStrip :items="insightItems" />
+          <div
+            v-for="(card, idx) in executiveKpiCards"
+            :key="card.widget.id"
+            class="min-w-0 lg:px-4"
+            :class="[idx === 0 && 'lg:pl-0', idx === executiveKpiCards.length - 1 && 'lg:pr-0']"
+          >
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-black/40">
+              {{ card.widget.title }}
+            </p>
+            <div class="mt-1.5">
+              <OverviewWidgetRenderer :payload="card.payload" compact />
+            </div>
+          </div>
+        </div>
       </div>
+    </SurfaceCard>
 
+    <!-- Primary operating grid: one hero row + supporting row -->
+    <section v-if="primaryCharts.length" class="grid grid-cols-12 gap-3 lg:gap-4">
       <OverviewWidgetCard
-        v-for="widget in chartWidgets"
+        v-for="(widget, idx) in primaryCharts"
         :key="widget.id"
         :widget="widget"
         :payload="widgetPayload(widget.id)"
-        :grid-class="gridClassFor(widget)"
-        :callout="widget.id === 'w-trend-spend-revenue' ? heroCallout : null"
+        :grid-class="primaryGridClass(widget, idx)"
+        :signal-links="isHeroWidget(widget) ? heroSignalLinks : []"
+        :risk-line="isHeroWidget(widget) ? heroRiskLine : null"
+        :callout="widgetCallout(widget)"
         :compact="!isHeroWidget(widget)"
         :variant="isHeroWidget(widget) ? 'depth' : 'frame'"
-        :padding="isHeroWidget(widget) ? 'md' : 'sm'"
+        :padding="isHeroWidget(widget) ? 'sm' : 'sm'"
         :table-expanded="tableDetailId === widget.id"
+        :title-quiet="!isHeroWidget(widget)"
+        :show-divider="true"
         @toggle-detail="toggleTableDetail(widget.id)"
       />
     </section>
+
+    <div v-if="secondaryCharts.length" class="border-t border-black/[0.06] pt-3">
+      <button
+        type="button"
+        class="flex w-full items-center justify-between gap-2 rounded-lg py-2 text-left text-[12px] font-semibold text-black/50 transition hover:text-black"
+        @click="moreExpanded = !moreExpanded"
+      >
+        <span>More metrics ({{ secondaryCharts.length }})</span>
+        <ChevronDown
+          class="h-4 w-4 shrink-0 transition-transform"
+          :class="moreExpanded ? 'rotate-180' : ''"
+          :stroke-width="2"
+          aria-hidden="true"
+        />
+      </button>
+      <div v-show="moreExpanded" class="mt-2 grid grid-cols-12 gap-3 lg:gap-4">
+        <OverviewWidgetCard
+          v-for="widget in secondaryCharts"
+          :key="widget.id"
+          :widget="widget"
+          :payload="widgetPayload(widget.id)"
+          :grid-class="gridClassFor(widget)"
+          :callout="widgetCallout(widget)"
+          compact
+          title-quiet
+          :table-expanded="tableDetailId === widget.id"
+          @toggle-detail="toggleTableDetail(widget.id)"
+        />
+      </div>
+    </div>
 
     <EmptyState
       v-if="!allWidgets.length"

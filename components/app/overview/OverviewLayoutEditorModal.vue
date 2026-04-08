@@ -49,14 +49,10 @@ function save() {
       class="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-4 sm:items-center"
       @click.self="emit('close')"
     >
-      <SurfaceCard variant="frame" class="max-h-[85vh] w-full max-w-lg overflow-hidden" padding="lg">
-        <div class="flex items-start justify-between gap-4">
+      <SurfaceCard variant="frame" class="max-h-[85vh] w-full max-w-md overflow-hidden" padding="md">
+        <div class="flex items-start justify-between gap-3">
           <div>
-            <p class="eyebrow rounded-full">
-              <span class="eyebrow-dot" />
-              Layout
-            </p>
-            <h2 class="mt-3 text-xl font-semibold tracking-tight text-black">
+            <h2 class="text-lg font-semibold tracking-tight text-black">
               Widget order
             </h2>
           </div>
@@ -65,11 +61,11 @@ function save() {
           </button>
         </div>
 
-        <ul class="mt-6 max-h-[min(52vh,28rem)] space-y-2 overflow-y-auto overscroll-y-contain pr-1">
+        <ul class="mt-4 max-h-[min(52vh,26rem)] space-y-1.5 overflow-y-auto overscroll-y-contain pr-1">
           <li
             v-for="(widget, index) in ordered"
             :key="widget.id"
-            class="flex items-center gap-2 rounded-2xl border border-black/[0.06] bg-black/[0.02] px-3 py-2.5"
+            class="flex items-center gap-2 rounded-xl border border-black/[0.06] bg-black/[0.02] px-2.5 py-2"
           >
             <div class="min-w-0 flex-1">
               <p class="truncate text-[14px] font-semibold text-black">
@@ -105,12 +101,12 @@ function save() {
           </li>
         </ul>
 
-        <div class="mt-6 flex flex-wrap justify-end gap-2 border-t border-black/[0.06] pt-5">
-          <button type="button" class="app-button button-secondary text-sm" @click="emit('close')">
+        <div class="mt-4 flex flex-wrap justify-end gap-2 border-t border-black/[0.06] pt-4">
+          <button type="button" class="button-secondary rounded-lg px-3 py-2 text-sm font-semibold" @click="emit('close')">
             Cancel
           </button>
-          <button type="button" class="app-button button-primary text-sm" @click="save">
-            Save order
+          <button type="button" class="button-primary rounded-lg px-3 py-2 text-sm font-semibold text-white" @click="save">
+            Save
           </button>
         </div>
       </SurfaceCard>

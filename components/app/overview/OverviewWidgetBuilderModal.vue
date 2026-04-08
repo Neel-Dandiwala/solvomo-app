@@ -56,10 +56,10 @@ watch(
   [source, metric, dimension, visualization],
   () => {
     if (!title.value) {
-      title.value = `${sourceConfig.value.label} — ${metric.value.replaceAll("_", " ")} by ${dimension.value.replaceAll("_", " ")}`;
+      title.value = `${sourceConfig.value.label} — ${metric.value.replaceAll("_", " ")}`;
     }
     if (!description.value) {
-      description.value = `${visualizationLabels[visualization.value]} for ${sourceConfig.value.label.toLowerCase()} using ${metric.value.replaceAll("_", " ")} grouped by ${dimension.value.replaceAll("_", " ")}.`;
+      description.value = "";
     }
   },
   { immediate: true },
@@ -99,146 +99,100 @@ function saveWidget() {
       class="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-4 sm:items-center"
       @click.self="emit('close')"
     >
-      <SurfaceCard variant="frame" class="max-h-[90vh] w-full max-w-3xl overflow-y-auto" padding="lg">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="eyebrow rounded-full">
-              <span class="eyebrow-dot" />
-              Add custom widget
-            </p>
-            <h2 class="mt-4 text-2xl font-semibold tracking-tight text-black">
-              Build a widget from available data
-            </h2>
-            <p class="mt-2 text-sm leading-relaxed text-black/55">
-              Choose a data source, metric, dimension, and visualization. The builder only exposes combinations that are available in the current demo model.
-            </p>
-          </div>
+      <SurfaceCard variant="frame" class="max-h-[90vh] w-full max-w-xl overflow-y-auto" padding="md">
+        <div class="flex items-start justify-between gap-3">
+          <h2 class="text-lg font-semibold tracking-tight text-black">
+            Add widget
+          </h2>
           <button type="button" class="nav-link text-sm font-semibold" @click="emit('close')">
             Close
           </button>
         </div>
 
-        <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <div class="space-y-5">
-            <div class="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Data source</label>
-                <select v-model="source" class="auth-input mt-2">
-                  <option v-for="option in OVERVIEW_WIDGET_SOURCE_OPTIONS" :key="option.id" :value="option.id">
-                    {{ option.label }}
-                  </option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Metric</label>
-                <select v-model="metric" class="auth-input mt-2">
-                  <option v-for="option in metricOptions" :key="option" :value="option">
-                    {{ option.replaceAll("_", " ") }}
-                  </option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Dimension</label>
-                <select v-model="dimension" class="auth-input mt-2">
-                  <option v-for="option in dimensionOptions" :key="option" :value="option">
-                    {{ option.replaceAll("_", " ") }}
-                  </option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Visualization</label>
-                <select v-model="visualization" class="auth-input mt-2">
-                  <option v-for="option in visualizationOptions" :key="option" :value="option">
-                    {{ visualizationLabels[option] }}
-                  </option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Widget size</label>
-                <select v-model="size" class="auth-input mt-2">
-                  <option value="xs">Compact KPI</option>
-                  <option value="sm">Small</option>
-                  <option value="md">Medium</option>
-                  <option value="lg">Large</option>
-                  <option value="full">Full width</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Placement</label>
-                <select v-model="placement" class="auth-input mt-2">
-                  <option value="top">Top of dashboard</option>
-                  <option value="bottom">Bottom of dashboard</option>
-                  <option value="after">After a widget</option>
-                </select>
-              </div>
-            </div>
-
-            <div v-if="placement === 'after'">
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Placement target</label>
-              <select v-model="afterWidgetId" class="auth-input mt-2">
-                <option disabled value="">
-                  Select a widget
-                </option>
-                <option v-for="widget in currentWidgets" :key="widget.id" :value="widget.id">
-                  {{ widget.title }}
+        <div class="mt-5 space-y-4">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Source</label>
+              <select v-model="source" class="auth-input mt-1.5">
+                <option v-for="option in OVERVIEW_WIDGET_SOURCE_OPTIONS" :key="option.id" :value="option.id">
+                  {{ option.label }}
                 </option>
               </select>
             </div>
-
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Widget title</label>
-              <input v-model="title" class="auth-input mt-2" type="text">
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Metric</label>
+              <select v-model="metric" class="auth-input mt-1.5">
+                <option v-for="option in metricOptions" :key="option" :value="option">
+                  {{ option.replaceAll("_", " ") }}
+                </option>
+              </select>
             </div>
-
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Description</label>
-              <textarea v-model="description" class="auth-input mt-2 min-h-[7rem] resize-y" />
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Dimension</label>
+              <select v-model="dimension" class="auth-input mt-1.5">
+                <option v-for="option in dimensionOptions" :key="option" :value="option">
+                  {{ option.replaceAll("_", " ") }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Chart type</label>
+              <select v-model="visualization" class="auth-input mt-1.5">
+                <option v-for="option in visualizationOptions" :key="option" :value="option">
+                  {{ visualizationLabels[option] }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Size</label>
+              <select v-model="size" class="auth-input mt-1.5">
+                <option value="xs">KPI</option>
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+                <option value="full">Full width</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Placement</label>
+              <select v-model="placement" class="auth-input mt-1.5">
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="after">After…</option>
+              </select>
             </div>
           </div>
 
-          <div class="surface-soft rounded-2xl p-5">
-            <p class="text-xs font-bold uppercase tracking-wide text-black/45">
-              Available fields
-            </p>
-            <p class="mt-3 text-sm leading-relaxed text-black/58">
-              {{ sourceConfig.description }}
-            </p>
-            <div class="mt-5">
-              <p class="text-xs font-bold uppercase tracking-wide text-black/45">Metrics</p>
-              <div class="mt-2 flex flex-wrap gap-2">
-                <span v-for="option in metricOptions" :key="option" class="rounded-full border border-black/8 px-3 py-1 text-xs text-black/60">
-                  {{ option.replaceAll("_", " ") }}
-                </span>
-              </div>
-            </div>
-            <div class="mt-5">
-              <p class="text-xs font-bold uppercase tracking-wide text-black/45">Dimensions</p>
-              <div class="mt-2 flex flex-wrap gap-2">
-                <span v-for="option in dimensionOptions" :key="option" class="rounded-full border border-black/8 px-3 py-1 text-xs text-black/60">
-                  {{ option.replaceAll("_", " ") }}
-                </span>
-              </div>
-            </div>
+          <div v-if="placement === 'after'">
+            <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">After widget</label>
+            <select v-model="afterWidgetId" class="auth-input mt-1.5">
+              <option disabled value="">
+                Select
+              </option>
+              <option v-for="widget in currentWidgets" :key="widget.id" :value="widget.id">
+                {{ widget.title }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold uppercase tracking-wide text-black/45">Title</label>
+            <input v-model="title" class="auth-input mt-1.5" type="text">
           </div>
         </div>
 
-        <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-black/8 pt-6">
-          <p class="text-sm text-black/50">
-            This will be saved to the current dashboard only.
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold" @click="emit('close')">
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white"
-              :disabled="placement === 'after' && !afterWidgetId"
-              @click="saveWidget"
-            >
-              Add widget
-            </button>
-          </div>
+        <div class="mt-5 flex flex-wrap justify-end gap-2 border-t border-black/8 pt-4">
+          <button type="button" class="button-secondary rounded-lg px-3 py-2 text-sm font-semibold" @click="emit('close')">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="button-primary rounded-lg px-3 py-2 text-sm font-semibold text-white"
+            :disabled="placement === 'after' && !afterWidgetId"
+            @click="saveWidget"
+          >
+            Add
+          </button>
         </div>
       </SurfaceCard>
     </div>
