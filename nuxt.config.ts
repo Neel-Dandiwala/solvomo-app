@@ -33,6 +33,13 @@ export default defineNuxtConfig({
         },
         { name: "theme-color", content: "#FFFFFF" },
       ],
+      link: [
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/logo_transparent.png",
+        },
+      ],
     },
   },
 });
