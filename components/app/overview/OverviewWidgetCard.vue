@@ -1,107 +1,89 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, GripVertical, Trash2 } from "lucide-vue-next";
 import type { OverviewWidgetConfig } from "~/types/mock";
 import type { OverviewWidgetPayload } from "~/composables/useOverviewWidgetPayloads";
 import OverviewWidgetRenderer from "~/components/app/overview/OverviewWidgetRenderer.vue";
 
-const props = defineProps<{
-  widget: OverviewWidgetConfig;
-  payload: OverviewWidgetPayload | null;
-  editMode?: boolean;
-  variant?: "frame" | "product" | "soft" | "depth";
-  padding?: "sm" | "md" | "lg";
-}>();
-
-const emit = defineEmits<{
-  "move-up": [id: string];
-  "move-down": [id: string];
-  "remove": [id: string];
-  "drag-start": [id: string];
-  "drag-over": [id: string];
-  "drop": [id: string];
-}>();
+const props = withDefaults(
+  defineProps<{
+    widget: OverviewWidgetConfig;
+    payload: OverviewWidgetPayload | null;
+    variant?: "frame" | "product" | "soft" | "depth";
+    padding?: "sm" | "md" | "lg";
+    /** When set, overrides default span classes from `widget.size` */
+    gridClass?: string;
+    /** Short line tied to a related signal (e.g. hero chart) */
+    callout?: string | null;
+    compact?: boolean;
+    tableExpanded?: boolean;
+  }>(),
+  { callout: null, compact: false, tableExpanded: false },
+);
 
 const sizeClass = computed(() => {
+  if (props.gridClass) return props.gridClass;
   switch (props.widget.size) {
     case "xs":
-      return "md:col-span-3 xl:col-span-2";
+      return "col-span-12 sm:col-span-6 lg:col-span-3";
     case "sm":
-      return "md:col-span-3 xl:col-span-3";
+      return "col-span-12 sm:col-span-6 lg:col-span-4";
     case "lg":
-      return "md:col-span-6 xl:col-span-6";
+      return "col-span-12 lg:col-span-8";
     case "full":
-      return "md:col-span-6 xl:col-span-12";
+      return "col-span-12";
     default:
-      return "md:col-span-3 xl:col-span-4";
+      return "col-span-12 sm:col-span-6 lg:col-span-4";
   }
 });
+
+const showDetailToggle = computed(
+  () => props.payload?.kind === "table" && (props.payload.rows?.length ?? 0) > 5,
+);
+
+defineEmits<{
+  "toggle-detail": [];
+}>();
 </script>
 
 <template>
   <SurfaceCard
     :variant="variant ?? 'frame'"
-    :padding="padding ?? 'md'"
-    class="group h-full min-w-0 overflow-hidden"
-    :class="[sizeClass, editMode ? 'cursor-move' : '']"
-    :draggable="editMode"
-    @dragstart="emit('drag-start', widget.id)"
-    @dragover.prevent="emit('drag-over', widget.id)"
-    @drop.prevent="emit('drop', widget.id)"
+    :padding="padding ?? (compact ? 'sm' : 'md')"
+    class="group h-full min-w-0 max-w-full overflow-hidden"
+    :class="sizeClass"
   >
-    <div class="flex items-start justify-between gap-4">
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2.5">
-          <GripVertical
-            v-if="editMode"
-            class="h-4 w-4 shrink-0 text-black/34"
-            :stroke-width="1.9"
-            aria-hidden="true"
-          />
-          <h3 class="sv-card-title truncate">
-            {{ widget.title }}
-          </h3>
-        </div>
-        <p v-if="editMode" class="sv-body-copy mt-3 max-w-2xl">
-          {{ widget.description }}
-        </p>
-      </div>
-      <div v-if="editMode" class="flex shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          class="inline-flex rounded-xl p-2.5 text-black/48 transition hover:bg-black/[0.03] hover:text-black"
-          aria-label="Move widget up"
-          @click="emit('move-up', widget.id)"
-        >
-          <ArrowUp class="h-4 w-4" :stroke-width="1.9" />
-        </button>
-        <button
-          type="button"
-          class="inline-flex rounded-xl p-2.5 text-black/48 transition hover:bg-black/[0.03] hover:text-black"
-          aria-label="Move widget down"
-          @click="emit('move-down', widget.id)"
-        >
-          <ArrowDown class="h-4 w-4" :stroke-width="1.9" />
-        </button>
-        <button
-          type="button"
-          class="inline-flex rounded-xl p-2.5 text-black/48 transition hover:bg-black/[0.03] hover:text-black"
-          aria-label="Remove widget"
-          @click="emit('remove', widget.id)"
-        >
-          <Trash2 class="h-4 w-4" :stroke-width="1.9" />
-        </button>
-      </div>
+    <div class="min-w-0">
+      <h3 class="sv-card-title truncate">
+        {{ widget.title }}
+      </h3>
+      <p
+        v-if="callout"
+        class="mt-2 border-l-2 border-[rgba(91,123,225,0.45)] pl-3 text-[13px] font-medium leading-snug text-black/70"
+      >
+        {{ callout }}
+      </p>
     </div>
 
-    <div v-if="payload" class="mt-6">
-      <div class="sv-card-divider mb-6" />
-      <OverviewWidgetRenderer :payload="payload" />
+    <div v-if="payload" :class="compact ? 'mt-4' : 'mt-5'">
+      <div class="sv-card-divider" :class="compact ? 'mb-4' : 'mb-5'" />
+      <OverviewWidgetRenderer
+        :payload="payload"
+        :compact="compact"
+        :table-expanded="tableExpanded"
+      />
+      <button
+        v-if="showDetailToggle"
+        type="button"
+        class="mt-3 text-[13px] font-semibold text-black/55 hover:text-black"
+        @click="$emit('toggle-detail')"
+      >
+        {{ tableExpanded ? "Show less" : "View details" }}
+      </button>
     </div>
     <EmptyState
       v-else
-      class="mt-6 border-0 bg-transparent px-0 py-0 text-left"
-      title="No data available"
-      description="This widget will populate when the selected source and scope have enough data."
+      class="mt-4 border-0 bg-transparent px-0 py-0 text-left"
+      title="No data"
+      description="Connect sources or widen the date range."
     />
   </SurfaceCard>
 </template>

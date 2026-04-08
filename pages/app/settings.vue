@@ -8,43 +8,57 @@ const { currentWorkspace, currentBrand } = useWorkspaceContext();
 
 const section = ref<"user" | "workspace" | "brand" | "members" | "api">("user");
 
-const tabs = [
-  { id: "user", label: "User settings" },
-  { id: "workspace", label: "Workspace profile" },
-  { id: "members", label: "Members" },
-  { id: "api", label: "API keys" },
-  { id: "brand", label: "Brand profile" },
+const navSections = [
+  {
+    label: "Account",
+    tabs: [
+      { id: "user" as const, label: "User" },
+      { id: "brand" as const, label: "Brand & attribution" },
+    ],
+  },
+  {
+    label: "Workspace",
+    tabs: [
+      { id: "workspace" as const, label: "Workspace profile" },
+      { id: "members" as const, label: "Members" },
+      { id: "api" as const, label: "API keys" },
+    ],
+  },
 ] as const;
 </script>
 
 <template>
   <div>
-    <PageHeader
-      title="Settings"
-      :description="`Workspace controls for ${currentWorkspace?.name}. Brand-level modeling lives under Brand — separate from workspace admin.`"
-    />
+    <PageHeader title="Settings" :description="`Workspace: ${currentWorkspace?.name}`" dense />
 
-    <div class="flex flex-col gap-6 lg:flex-row">
-      <nav class="flex shrink-0 flex-wrap gap-2 lg:w-52 lg:flex-col">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          type="button"
-          class="rounded-xl px-3 py-2 text-left text-sm font-semibold transition"
-          :class="section === tab.id ? 'bg-black/[0.06] text-black' : 'text-black/50 hover:text-black'"
-          @click="section = tab.id"
-        >
-          {{ tab.label }}
-        </button>
+    <div class="flex flex-col gap-6 lg:flex-row lg:gap-10">
+      <nav class="flex shrink-0 flex-col gap-6 lg:w-56">
+        <div v-for="group in navSections" :key="group.label">
+          <p class="px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/40">
+            {{ group.label }}
+          </p>
+          <div class="mt-2 flex flex-wrap gap-2 lg:flex-col">
+            <button
+              v-for="tab in group.tabs"
+              :key="tab.id"
+              type="button"
+              class="rounded-xl px-3 py-2 text-left text-sm font-semibold transition"
+              :class="section === tab.id ? 'bg-black/[0.06] text-black' : 'text-black/50 hover:text-black'"
+              @click="section = tab.id"
+            >
+              {{ tab.label }}
+            </button>
+          </div>
+        </div>
       </nav>
 
-      <SurfaceCard variant="frame" class="min-w-0 flex-1" padding="lg">
+      <SurfaceCard variant="frame" class="min-w-0 flex-1 overflow-hidden" padding="lg">
         <template v-if="section === 'user'">
           <h2 class="text-lg font-semibold">
-            User settings
+            User
           </h2>
-          <p class="mt-2 text-sm text-black/50">
-            Personal profile, notification preferences, and account-level defaults for your Solvomo login.
+          <p class="mt-1 text-sm text-black/50">
+            Profile and notifications for your login.
           </p>
           <div class="mt-6 grid gap-6 lg:grid-cols-2">
             <div>
@@ -77,8 +91,8 @@ const tabs = [
           <h2 class="text-lg font-semibold">
             Workspace profile
           </h2>
-          <p class="mt-2 text-sm text-black/50">
-            Billing, legal entity, and workspace defaults. Does not change creative or spend models for individual brand profiles.
+          <p class="mt-1 text-sm text-black/50">
+            Billing and workspace defaults (not brand-level models).
           </p>
           <p class="mt-6 text-sm text-black/60">
             Signed in as <span class="font-semibold text-black">{{ auth.displayName }}</span>
@@ -95,13 +109,13 @@ const tabs = [
           <h2 class="text-lg font-semibold">
             Members
           </h2>
-          <p class="mt-2 text-sm text-black/50">
-            Invite collaborators to this workspace. Brand profile access can be restricted per member in a later release.
+          <p class="mt-1 text-sm text-black/50">
+            Collaborators in this workspace.
           </p>
           <EmptyState
             class="mt-6"
             title="No pending invites"
-            description="When directory sync is enabled, seats and roles will be managed here."
+            description="Directory sync will manage seats and roles here."
           >
             <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
               Invite member
@@ -113,13 +127,13 @@ const tabs = [
           <h2 class="text-lg font-semibold">
             API keys
           </h2>
-          <p class="mt-2 text-sm text-black/50">
-            Programmatic access is scoped to this workspace. Rotate keys regularly; never embed secrets in client-side code.
+          <p class="mt-1 text-sm text-black/50">
+            Programmatic access scoped to this workspace.
           </p>
           <EmptyState
             class="mt-6"
             title="No keys issued"
-            description="Create a key when you connect internal ETL or custom importers."
+            description="Create a key for ETL or custom importers."
           >
             <button type="button" class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white">
               Create API key
@@ -129,10 +143,10 @@ const tabs = [
 
         <template v-else>
           <h2 class="text-lg font-semibold">
-            Brand profile — {{ currentBrand?.name }}
+            Brand & attribution — {{ currentBrand?.name }}
           </h2>
-          <p class="mt-2 text-sm text-black/50">
-            Attribution, currency, and modeling assumptions for this profile only. Other brands in the workspace are unaffected.
+          <p class="mt-1 text-sm text-black/50">
+            Currency and attribution for this brand profile only.
           </p>
           <ul class="mt-6 space-y-3 text-sm text-black/65">
             <li>
@@ -148,7 +162,7 @@ const tabs = [
             to="/onboarding/brand-setup"
             class="button-secondary mt-8 inline-flex rounded-xl px-4 py-2 text-sm font-semibold"
           >
-            Open brand setup wizard
+            Brand setup wizard
           </NuxtLink>
         </template>
       </SurfaceCard>

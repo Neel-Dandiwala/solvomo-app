@@ -1,9 +1,40 @@
 <script setup lang="ts">
 import type { OverviewWidgetPayload } from "~/composables/useOverviewWidgetPayloads";
 
-const props = defineProps<{
-  payload: OverviewWidgetPayload;
-}>();
+const props = withDefaults(
+  defineProps<{
+    payload: OverviewWidgetPayload;
+    compact?: boolean;
+    tableExpanded?: boolean;
+  }>(),
+  { compact: false, tableExpanded: false },
+);
+
+const chartBarAreaClass = computed(() =>
+  props.compact ? "flex h-40 items-end gap-2 sm:gap-3" : "flex h-52 items-end gap-3 lg:h-60",
+);
+
+const chartLineSvgClass = computed(() =>
+  props.compact ? "h-36 w-full overflow-visible sm:h-40" : "h-52 w-full overflow-visible lg:h-60",
+);
+
+const tableRowsView = computed(() => {
+  if (props.payload.kind !== "table") return [];
+  const rows = props.payload.rows;
+  return props.tableExpanded ? rows : rows.slice(0, 5);
+});
+
+function buildSparkPoints(values: number[]) {
+  const w = 100;
+  const h = 28;
+  return values
+    .map((v, i) => {
+      const x = values.length === 1 ? w / 2 : (i / (values.length - 1)) * w;
+      const y = h - 3 - v * (h - 6);
+      return `${x},${y}`;
+    })
+    .join(" ");
+}
 
 const chartMax = computed(() => {
   if (props.payload.kind !== "chart") return 0;
@@ -97,12 +128,30 @@ const donutStyle = computed(() => {
 <template>
   <div>
     <template v-if="payload.kind === 'kpi'">
-      <p class="sv-kpi-value">
-        {{ payload.kpi.value }}
-      </p>
-      <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-start justify-between gap-3">
+        <p :class="compact ? 'text-[1.5rem] font-semibold tracking-[-0.04em] text-black' : 'sv-kpi-value'">
+          {{ payload.kpi.value }}
+        </p>
+        <svg
+          v-if="payload.sparkline?.length"
+          viewBox="0 0 100 28"
+          class="h-7 w-[5.5rem] shrink-0 text-[#5B7BE1]"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <polyline
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            :points="buildSparkPoints(payload.sparkline)"
+          />
+        </svg>
+      </div>
+      <div :class="compact ? 'mt-3 flex flex-wrap items-center justify-between gap-2' : 'mt-5 flex flex-wrap items-center justify-between gap-3'">
         <p
-          class="inline-flex min-h-[2rem] items-center rounded-full border px-3 py-1 text-[14px] font-semibold tracking-[-0.01em]"
+          class="inline-flex min-h-[1.75rem] items-center rounded-full border px-2.5 py-0.5 text-[13px] font-semibold tracking-[-0.01em] sm:px-3 sm:py-1 sm:text-[14px]"
           :class="
             payload.kpi.tone === 'positive'
               ? 'border-[rgba(91,123,225,0.14)] bg-[rgba(91,123,225,0.08)] text-[rgba(30,58,138,0.86)]'
@@ -113,7 +162,7 @@ const donutStyle = computed(() => {
         >
           {{ payload.kpi.change }}
         </p>
-        <p class="text-[14px] text-black/56">
+        <p class="max-w-[12rem] text-right text-[12px] text-black/52 sm:text-[14px]">
           {{ payload.kpi.helper }}
         </p>
       </div>
@@ -127,7 +176,7 @@ const donutStyle = computed(() => {
               <span v-for="tick in chartTicks" :key="tick">{{ tick }}</span>
             </div>
             <div>
-              <div class="flex h-64 items-end gap-3 lg:h-72">
+              <div :class="chartBarAreaClass">
                 <div v-for="(label, index) in payload.labels" :key="label" class="flex min-w-0 flex-1 flex-col items-center gap-3">
                   <div class="flex h-full w-full items-end justify-center gap-1.5 rounded-[1.1rem] bg-black/[0.02] px-1.5 pt-4">
                     <div
@@ -180,7 +229,7 @@ const donutStyle = computed(() => {
               <span v-for="tick in chartTicks" :key="tick">{{ tick }}</span>
             </div>
             <div class="min-w-0">
-              <svg viewBox="0 0 100 64" class="h-60 w-full overflow-visible lg:h-72">
+              <svg viewBox="0 0 100 64" :class="chartLineSvgClass">
                 <line x1="0" y1="14" x2="100" y2="14" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
                 <line x1="0" y1="28" x2="100" y2="28" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
                 <line x1="0" y1="42" x2="100" y2="42" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
@@ -218,9 +267,16 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'donut'">
-      <div class="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-center">
-        <div class="mx-auto flex h-44 w-44 items-center justify-center rounded-full border border-black/6" :style="donutStyle">
-          <div class="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-white">
+      <div class="grid gap-4 lg:grid-cols-[11rem_minmax(0,1fr)] lg:items-center" :class="compact ? 'lg:gap-4' : 'lg:gap-6'">
+        <div
+          class="mx-auto flex items-center justify-center rounded-full border border-black/6"
+          :class="compact ? 'h-36 w-36' : 'h-44 w-44'"
+          :style="donutStyle"
+        >
+          <div
+            class="flex flex-col items-center justify-center rounded-full bg-white"
+            :class="compact ? 'h-24 w-24' : 'h-28 w-28'"
+          >
             <span class="sv-meta">Total</span>
             <span class="mt-1 text-[1.5rem] font-semibold tracking-[-0.04em] text-black">
               {{ donutTotal }}
@@ -253,7 +309,7 @@ const donutStyle = computed(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, index) in payload.rows.slice(0, 5)" :key="index">
+            <tr v-for="(row, index) in tableRowsView" :key="index">
               <td v-for="column in payload.columns" :key="column.key" class="border-t border-black/6 px-5 py-4 text-black/82">
                 {{ row[column.key] }}
               </td>
@@ -284,19 +340,20 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'alerts'">
-      <div class="space-y-3.5">
+      <div :class="compact ? 'space-y-2.5' : 'space-y-3.5'">
         <article
           v-for="item in payload.items"
           :key="item.id"
-          class="sv-card-inset rounded-[1.5rem] px-5 py-4.5"
+          class="sv-card-inset rounded-2xl px-4 py-3.5"
+          :class="compact ? '' : 'rounded-[1.5rem] px-5 py-4.5'"
         >
           <div class="flex items-center justify-between gap-3">
-            <p class="text-[1rem] font-semibold tracking-[-0.025em] text-black">
+            <p class="text-[15px] font-semibold tracking-[-0.025em] text-black">
               {{ item.title }}
             </p>
-            <span class="text-[13px] text-black/46">{{ item.createdAt }}</span>
+            <span class="shrink-0 text-[12px] text-black/46">{{ item.createdAt }}</span>
           </div>
-          <p class="mt-3 text-[15px] leading-7 text-black/64">
+          <p class="mt-2 text-[13px] leading-6 text-black/64" :class="compact ? '' : 'mt-3 text-[15px] leading-7'">
             {{ item.summary }}
           </p>
         </article>

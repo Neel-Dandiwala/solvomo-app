@@ -20,6 +20,8 @@ export type OverviewWidgetPayload =
   | {
       kind: "kpi";
       kpi: OverviewKpi;
+      /** Normalized 0–1 sparkline for executive tiles */
+      sparkline?: number[];
     }
   | {
       kind: "chart";
@@ -57,6 +59,36 @@ function formatPercent(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
+function findKpiForWidget(
+  snapshot: NonNullable<ReturnType<typeof useAppData>["overview"]["value"]>,
+  widget: OverviewWidgetConfig,
+) {
+  const metric = widget.metric;
+  const byId =
+    metric === "pipeline_revenue"
+      ? snapshot.kpis.find((k) => k.id === "pipeline" || k.id === "pipeline_revenue")
+      : snapshot.kpis.find((k) => k.id === metric);
+  return byId ?? snapshot.kpis.find((k) => k.label === widget.title);
+}
+
+function sparklineForMetric(
+  snapshot: NonNullable<ReturnType<typeof useAppData>["overview"]["value"]>,
+  rangeSize: number,
+  metric: OverviewWidgetConfig["metric"],
+): number[] | undefined {
+  const slice = rangeSize > 0 ? snapshot.trendPoints.slice(-rangeSize) : snapshot.trendPoints;
+  if (!slice.length) return undefined;
+  let raw: number[] = [];
+  if (metric === "spend") raw = slice.map((p) => p.spend);
+  else if (metric === "revenue") raw = slice.map((p) => p.revenue);
+  else if (metric === "closed_revenue") raw = slice.map((p) => p.closedRevenue);
+  else if (metric === "pipeline_revenue") raw = slice.map((p) => p.pipelineRevenue);
+  else if (metric === "qualified_leads") raw = slice.map((p) => p.qualifiedLeads);
+  else return undefined;
+  const max = Math.max(...raw, 1e-6);
+  return raw.map((v) => v / max);
+}
+
 function groupSpendRecords(records: OverviewSpendRecord[], by: "channel" | "vendor") {
   const groups = new Map<string, Record<string, number>>();
   for (const record of records) {
@@ -89,8 +121,10 @@ export function useOverviewWidgetPayloads() {
     const spendRecords = rangeSize > 0 ? snapshot.spendRecords.slice(-Math.min(snapshot.spendRecords.length, rangeSize)) : snapshot.spendRecords;
 
     if (widget.visualization === "kpi") {
-      const kpi = snapshot.kpis.find((item) => item.id === widget.metric || item.label === widget.title);
-      return kpi ? { kind: "kpi", kpi } : null;
+      const kpi = findKpiForWidget(snapshot, widget);
+      if (!kpi) return null;
+      const sparkline = widget.metric ? sparklineForMetric(snapshot, rangeSize, widget.metric) : undefined;
+      return { kind: "kpi", kpi, sparkline };
     }
 
     if (widget.visualization === "insights") {
@@ -122,6 +156,38 @@ export function useOverviewWidgetPayloads() {
             vendor: record.vendor,
             category: record.category,
             amount: formatCompactCurrency(record.amount),
+          })),
+        };
+      }
+      if (widget.datasetKey === "creativeLeaderboard") {
+        return {
+          kind: "table",
+          columns: [
+            { key: "name", label: "Creative" },
+            { key: "spend", label: "Spend" },
+            { key: "revenue", label: "Revenue" },
+            { key: "roas", label: "ROAS" },
+          ],
+          rows: snapshot.creativeLeaderboard.map((row) => ({
+            name: row.name,
+            spend: formatCompactCurrency(row.spend),
+            revenue: formatCompactCurrency(row.revenue),
+            roas: `${row.roas.toFixed(1)}x`,
+          })),
+        };
+      }
+      if (widget.datasetKey === "performanceChanges") {
+        return {
+          kind: "table",
+          columns: [
+            { key: "label", label: "Metric" },
+            { key: "delta", label: "Change" },
+            { key: "period", label: "Window" },
+          ],
+          rows: snapshot.performanceChanges.map((row) => ({
+            label: row.label,
+            delta: row.delta,
+            period: row.period,
           })),
         };
       }
@@ -183,7 +249,9 @@ export function useOverviewWidgetPayloads() {
                 ? "deals"
                 : widget.metric === "spend"
                   ? "spend"
-                  : "revenue";
+                  : widget.metric === "conversions"
+                    ? "conversions"
+                    : "revenue";
 
       return {
         kind: "chart",
@@ -193,7 +261,13 @@ export function useOverviewWidgetPayloads() {
           {
             label: widget.title,
             color: widget.source === "crm_data" ? "brand" : widget.source === "spend_data" ? "depth" : "product",
-            values: trendPoints.map((point) => Number(point[valueKey as keyof (typeof trendPoints)[number]] ?? 0)),
+            values: trendPoints.map((point) => {
+              if (widget.metric === "conversions") {
+                const p = point as (typeof snapshot.trendPoints)[number];
+                return Number(p.conversions ?? p.qualifiedLeads * 0.35);
+              }
+              return Number(point[valueKey as keyof (typeof trendPoints)[number]] ?? 0);
+            }),
           },
         ],
       };

@@ -53,6 +53,7 @@ export type OverviewWidgetMetric =
   | "ctr"
   | "conversions"
   | "amount";
+
 export type OverviewWidgetDimension =
   | "date"
   | "platform"
@@ -71,6 +72,8 @@ export interface OverviewKpi {
   helper: string;
 }
 
+export type OverviewInsightKind = "opportunity" | "risk" | "neutral";
+
 export interface OverviewInsight {
   id: string;
   title: string;
@@ -78,6 +81,12 @@ export interface OverviewInsight {
   tone: "brand" | "product" | "depth";
   linkLabel?: string;
   linkTo?: string;
+  /** Short label for signal strip; defaults to `title` when absent */
+  headline?: string;
+  kind?: OverviewInsightKind;
+  /** One-line cause/effect; shown in callouts or expanded detail */
+  because?: string;
+  relatedMetric?: OverviewWidgetMetric;
 }
 
 export interface OverviewTrendPoint {
@@ -88,6 +97,8 @@ export interface OverviewTrendPoint {
   deals: number;
   pipelineRevenue: number;
   closedRevenue: number;
+  /** Site-wide conversions (e.g. lead forms); used for conversion trend */
+  conversions?: number;
 }
 
 export interface OverviewPlatformSummary {
@@ -137,6 +148,21 @@ export interface OverviewConnectionsSummary {
   attention: number;
 }
 
+export interface OverviewCreativeLeaderboardRow {
+  id: string;
+  name: string;
+  spend: number;
+  revenue: number;
+  roas: number;
+}
+
+export interface OverviewPerformanceChange {
+  id: string;
+  label: string;
+  delta: string;
+  period: string;
+}
+
 export interface OverviewWidgetConfig {
   id: string;
   title: string;
@@ -160,6 +186,8 @@ export interface OverviewDashboardConfig {
 export interface OverviewData {
   kpis: OverviewKpi[];
   insights: OverviewInsight[];
+  /** 2–3 short lines for the executive row; no placeholder copy */
+  executiveBullets: string[];
   trendPoints: OverviewTrendPoint[];
   platformSummaries: OverviewPlatformSummary[];
   leadSourceSummaries: OverviewLeadSourceSummary[];
@@ -167,6 +195,8 @@ export interface OverviewData {
   campaignClusters: OverviewCampaignCluster[];
   funnel: OverviewFunnelStage[];
   connectionsSummary: OverviewConnectionsSummary;
+  creativeLeaderboard: OverviewCreativeLeaderboardRow[];
+  performanceChanges: OverviewPerformanceChange[];
   widgets: OverviewWidgetConfig[];
   dashboards: OverviewDashboardConfig[];
 }

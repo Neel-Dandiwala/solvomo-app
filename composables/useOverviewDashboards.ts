@@ -200,6 +200,11 @@ export function useOverviewDashboards() {
     currentState.value.widgets = currentState.value.widgets.filter((widget) => widget.id !== widgetId);
   }
 
+  function setDashboardWidgetOrder(widgetIds: string[]) {
+    if (!currentDashboard.value) return;
+    currentDashboard.value.widgetIds = [...widgetIds];
+  }
+
   return {
     dashboards,
     widgets,
@@ -212,5 +217,6 @@ export function useOverviewDashboards() {
     reorderWidgets,
     moveWidget,
     removeWidget,
+    setDashboardWidgetOrder,
   };
 }

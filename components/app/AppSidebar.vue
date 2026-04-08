@@ -43,7 +43,7 @@ function isActive(to: string) {
 
 <template>
   <aside
-    class="app-sidebar flex shrink-0 flex-col"
+    class="app-sidebar flex h-full min-h-0 shrink-0 flex-col lg:h-svh"
     :class="sidebarCollapsed ? 'app-sidebar--narrow' : 'app-sidebar--wide'"
   >
     <div class="flex h-16 items-center gap-3 border-b border-black/8 px-4 lg:h-[4.75rem] lg:px-4.5">
@@ -65,7 +65,10 @@ function isActive(to: string) {
         </div>
       </NuxtLink>
     </div>
-    <nav class="flex-1 overflow-y-auto px-3 py-4 lg:px-3.5" aria-label="Product">
+    <nav
+      class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 lg:px-3.5"
+      aria-label="Product"
+    >
       <div v-if="!sidebarCollapsed" class="sv-section-title px-3 pb-3">Navigation</div>
       <div class="space-y-1.5">
       <NuxtLink
