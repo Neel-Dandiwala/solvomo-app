@@ -105,7 +105,10 @@ function sparklineForMetric(
     });
   } else return undefined;
   const max = Math.max(...raw, 1e-6);
-  return raw.map((v) => v / max);
+  return raw.map((v) => {
+    const n = Number.isFinite(v) ? v / max : 0;
+    return Math.min(1, Math.max(0, n));
+  });
 }
 
 function groupSpendRecords(records: OverviewSpendRecord[], by: "channel" | "vendor") {

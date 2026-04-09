@@ -240,7 +240,7 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
           <div
             v-for="(card, idx) in executiveKpiCards"
             :key="card.widget.id"
-            class="min-w-0 lg:px-4"
+            class="min-w-0 overflow-hidden lg:px-4"
             :class="[idx === 0 && 'lg:pl-0', idx === executiveKpiCards.length - 1 && 'lg:pr-0']"
           >
             <p class="sv-section-title">

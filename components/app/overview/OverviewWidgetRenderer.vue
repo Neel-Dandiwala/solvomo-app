@@ -29,8 +29,9 @@ function buildSparkPoints(values: number[]) {
   const h = 28;
   return values
     .map((v, i) => {
+      const nv = Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
       const x = values.length === 1 ? w / 2 : (i / (values.length - 1)) * w;
-      const y = h - 3 - v * (h - 6);
+      const y = h - 3 - nv * (h - 6);
       return `${x},${y}`;
     })
     .join(" ");
@@ -136,32 +137,36 @@ const donutStyle = computed(() => {
 <template>
   <div>
     <template v-if="payload.kind === 'kpi'">
-      <div class="flex items-start justify-between gap-3">
+      <div class="flex min-w-0 items-start justify-between gap-2 overflow-hidden sm:gap-3">
         <p
           :class="
             compact
-              ? 'text-[1.5rem] font-semibold tabular-nums tracking-[-0.04em] text-black'
-              : 'sv-kpi-value tabular-nums'
+              ? 'min-w-0 flex-1 text-[1.5rem] font-semibold tabular-nums tracking-[-0.04em] text-black'
+              : 'sv-kpi-value min-w-0 flex-1 tabular-nums'
           "
         >
           {{ payload.kpi.value }}
         </p>
-        <svg
+        <div
           v-if="payload.sparkline?.length"
-          viewBox="0 0 100 28"
-          class="h-7 w-[5.5rem] shrink-0 text-[#5B7BE1]"
-          preserveAspectRatio="none"
+          class="h-7 w-[5.5rem] max-w-[42%] shrink-0 overflow-hidden sm:max-w-none sm:w-[5.5rem]"
           aria-hidden="true"
         >
-          <polyline
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            :points="buildSparkPoints(payload.sparkline)"
-          />
-        </svg>
+          <svg
+            viewBox="0 0 100 28"
+            class="h-full w-full overflow-hidden text-[#5B7BE1]"
+            preserveAspectRatio="none"
+          >
+            <polyline
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              :points="buildSparkPoints(payload.sparkline)"
+            />
+          </svg>
+        </div>
       </div>
       <div :class="compact ? 'mt-3 flex flex-wrap items-center justify-between gap-2' : 'mt-5 flex flex-wrap items-center justify-between gap-3'">
         <p
