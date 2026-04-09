@@ -65,7 +65,8 @@ function campaignRegionForAsset(asset: CreativeAsset) {
 function gridImageForAsset(asset: CreativeAsset) {
   let h = 0;
   for (let i = 0; i < asset.id.length; i += 1) h = (h * 31 + asset.id.charCodeAt(i)) >>> 0;
-  return adGridImages[h % adGridImages.length]!;
+  const idx = h % adGridImages.length;
+  return { src: adGridImages[idx]!, sheet: (idx + 1) as 1 | 2 | 3 };
 }
 
 function baseVariantForAsset(asset: CreativeAsset) {
@@ -338,7 +339,7 @@ function kpiColClass(index: number) {
   <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Creatives" dense metadata-tight />
+    <PageHeader title="Creatives" dense metadata-tight hide-context />
 
     <FilterBar compact>
       <div class="flex min-w-0 flex-col gap-1.5">
@@ -357,33 +358,33 @@ function kpiColClass(index: number) {
           </button>
         </div>
       </div>
-      <div class="flex flex-col gap-1.5">
+      <div class="flex shrink-0 flex-col gap-1.5">
         <label for="cr-filter-format" class="sv-section-title">Format</label>
-        <select id="cr-filter-format" v-model="selectedFormat" class="app-control min-w-[11rem]">
+        <select id="cr-filter-format" v-model="selectedFormat" class="app-control w-[11.5rem]">
           <option v-for="option in creativeFormats" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
       </div>
-      <div class="flex flex-col gap-1.5">
+      <div class="flex shrink-0 flex-col gap-1.5">
         <label for="cr-filter-platform" class="sv-section-title">Platform</label>
-        <select id="cr-filter-platform" v-model="selectedPlatform" class="app-control min-w-[11rem]">
+        <select id="cr-filter-platform" v-model="selectedPlatform" class="app-control w-[11.5rem]">
           <option v-for="option in creativePlatforms" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
       </div>
-      <div class="flex flex-col gap-1.5">
+      <div class="flex shrink-0 flex-col gap-1.5">
         <label for="cr-filter-region" class="sv-section-title">Region</label>
-        <select id="cr-filter-region" v-model="selectedRegion" class="app-control min-w-[12rem]">
+        <select id="cr-filter-region" v-model="selectedRegion" class="app-control w-[12.5rem]">
           <option v-for="option in creativeRegionOptions" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
       </div>
-      <div class="flex min-w-0 flex-col gap-1.5">
+      <div class="flex shrink-0 flex-col gap-1.5">
         <label for="cr-sort" class="sv-section-title">Sort table</label>
-        <select id="cr-sort" v-model="sortLeaderboard" class="app-control min-w-[10.5rem]">
+        <select id="cr-sort" v-model="sortLeaderboard" class="app-control w-[10.75rem]">
           <option value="revenue">By revenue</option>
           <option value="roas">By ROAS</option>
           <option value="fatigue">By fatigue</option>
@@ -449,7 +450,7 @@ function kpiColClass(index: number) {
       />
 
       <!-- Creative intelligence hero -->
-      <SurfaceCard variant="soft" padding="sm" class="col-span-12 border border-black/[0.05]">
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div class="flex min-w-0 items-start gap-3">
             <div :class="sectionIconClass">
@@ -468,7 +469,7 @@ function kpiColClass(index: number) {
           <article
             v-for="asset in intelligencePreviews"
             :key="asset.id"
-            class="rounded-[1.15rem] border border-black/[0.06] bg-white/85 p-3 shadow-[0_1px_0_rgba(15,23,42,0.04)]"
+            class="sv-card-inset rounded-[1.25rem] border border-black/[0.06] bg-white/90 p-4"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
@@ -481,20 +482,17 @@ function kpiColClass(index: number) {
               />
             </div>
 
-            <div class="mt-3 grid grid-cols-6 gap-2">
-              <div
+            <div class="mt-4 grid grid-cols-3 gap-3">
+              <CreativeVariantThumb
                 v-for="item in familyVariants(asset).variants"
                 :key="`v-${asset.id}-${item.variant}`"
-                class="min-w-0"
-              >
-                <CreativeVariantThumb
-                  :src="gridImageForAsset(asset)"
-                  :variant="item.variant"
-                  :alt="`${asset.name} variant ${item.variant + 1}`"
-                  frame-class="aspect-[9/16] w-full rounded-md"
-                  crop-class="h-full w-full"
-                />
-              </div>
+                :src="gridImageForAsset(asset).src"
+                :sheet="gridImageForAsset(asset).sheet"
+                :variant="item.variant"
+                :alt="`${asset.name} variant ${item.variant + 1}`"
+                frame-class="aspect-[9/16] w-full rounded-[0.9rem] border-black/[0.08]"
+                crop-class="h-full w-full"
+              />
             </div>
 
             <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[12px] text-black/58">
@@ -535,15 +533,16 @@ function kpiColClass(index: number) {
             class="group overflow-hidden rounded-[1.15rem] border border-black/[0.07] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]"
           >
             <div class="relative aspect-[4/3] overflow-hidden border-b border-black/[0.05] bg-black/[0.03]">
-              <div class="absolute inset-0 p-3">
-                <div class="grid h-full grid-cols-3 gap-2">
+              <div class="absolute inset-0 p-4">
+                <div class="grid h-full grid-cols-2 gap-3">
                   <CreativeVariantThumb
-                    v-for="idx in [0, 1, 2]"
+                    v-for="idx in [0, 1]"
                     :key="`top-${asset.id}-${idx}`"
-                    :src="gridImageForAsset(asset)"
+                    :src="gridImageForAsset(asset).src"
+                    :sheet="gridImageForAsset(asset).sheet"
                     :variant="variantForAsset(asset, idx)"
                     :alt="`${asset.name} variant ${variantForAsset(asset, idx) + 1}`"
-                    frame-class="aspect-[9/16] w-full rounded-md"
+                    frame-class="aspect-[9/16] w-full rounded-[0.9rem] border-black/[0.08]"
                     crop-class="h-full w-full"
                   />
                 </div>
@@ -605,10 +604,11 @@ function kpiColClass(index: number) {
               <p class="sv-section-title">Top ROAS</p>
               <div class="mt-2 flex gap-2">
                 <CreativeVariantThumb
-                  :src="gridImageForAsset(bestVariation)"
+                  :src="gridImageForAsset(bestVariation).src"
+                  :sheet="gridImageForAsset(bestVariation).sheet"
                   :variant="variantForAsset(bestVariation, 0)"
                   :alt="`${bestVariation.name} winner variant`"
-                  frame-class="h-14 w-11 shrink-0 rounded-md"
+                  frame-class="h-16 w-12 shrink-0 rounded-[0.85rem] border-black/[0.08]"
                   crop-class="h-full w-full"
                 />
                 <div class="min-w-0">
@@ -623,10 +623,11 @@ function kpiColClass(index: number) {
               <p class="sv-section-title">Watchlist</p>
               <div class="mt-2 flex gap-2">
                 <CreativeVariantThumb
-                  :src="gridImageForAsset(worstWatch)"
+                  :src="gridImageForAsset(worstWatch).src"
+                  :sheet="gridImageForAsset(worstWatch).sheet"
                   :variant="variantForAsset(worstWatch, 2)"
                   :alt="`${worstWatch.name} watch variant`"
-                  frame-class="h-14 w-11 shrink-0 rounded-md"
+                  frame-class="h-16 w-12 shrink-0 rounded-[0.85rem] border-black/[0.08]"
                   crop-class="h-full w-full"
                 />
                 <div class="min-w-0">
@@ -737,10 +738,11 @@ function kpiColClass(index: number) {
             class="flex gap-3 rounded-[1rem] border border-black/[0.06] bg-white/90 p-3"
           >
             <CreativeVariantThumb
-              :src="gridImageForAsset(asset)"
+              :src="gridImageForAsset(asset).src"
+              :sheet="gridImageForAsset(asset).sheet"
               :variant="variantForAsset(asset, 4)"
               :alt="`${asset.name} fatigued variant`"
-              frame-class="h-14 w-11 shrink-0 rounded-md"
+              frame-class="h-16 w-12 shrink-0 rounded-[0.85rem] border-black/[0.08]"
               crop-class="h-full w-full"
             />
             <div class="min-w-0 flex-1">
@@ -780,10 +782,11 @@ function kpiColClass(index: number) {
           <template #cell-name="{ row }">
             <div class="flex items-center gap-3">
               <CreativeVariantThumb
-                :src="gridImageForAsset(assetForTableRow(String(row.id)))"
+                :src="gridImageForAsset(assetForTableRow(String(row.id))).src"
+                :sheet="gridImageForAsset(assetForTableRow(String(row.id))).sheet"
                 :variant="variantForAsset(assetForTableRow(String(row.id)), 1)"
                 :alt="`${row.name} thumbnail`"
-                frame-class="h-11 w-9 shrink-0 rounded-md"
+                frame-class="h-12 w-10 shrink-0 rounded-[0.85rem] border-black/[0.08]"
                 crop-class="h-full w-full"
               />
               <div class="min-w-0">

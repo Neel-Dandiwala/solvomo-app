@@ -57,7 +57,7 @@ function severityLabel(s: AlertSeverity) {
   <div class="alerts-page">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader
+    <PageHeader hide-context
       title="Alerts"
       description="Operational signals for this brand profile — what to look at next. Delivery health, connector posture, and spend guardrails. No noise, no webhook jargon."
     />

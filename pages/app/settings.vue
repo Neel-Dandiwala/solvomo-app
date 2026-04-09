@@ -29,7 +29,7 @@ const navSections = [
 
 <template>
   <div>
-    <PageHeader title="Settings" :description="`Workspace: ${currentWorkspace?.name}`" dense />
+    <PageHeader title="Settings" :description="`Workspace: ${currentWorkspace?.name}`" dense hide-context />
 
     <div class="flex flex-col gap-6 lg:flex-row lg:gap-10">
       <nav class="flex shrink-0 flex-col gap-6 lg:w-56">

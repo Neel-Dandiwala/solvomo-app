@@ -61,7 +61,7 @@ function nextDeployStage() {
   <div>
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Lab" description="Simulation workspace for Versions — draft, compare, and stage deploy to production integrations.">
+    <PageHeader title="Lab" description="Simulation workspace for Versions — draft, compare, and stage deploy to production integrations." hide-context>
       <template #actions>
         <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
           Save Version

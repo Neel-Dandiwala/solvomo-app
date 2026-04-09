@@ -122,7 +122,7 @@ const columns: DataTableColumn[] = [
 
 <template>
   <div class="space-y-8">
-    <PageHeader title="Outcomes">
+    <PageHeader title="Outcomes" hide-context>
       <template #actions>
         <button type="button" class="app-button button-secondary text-sm">
           <GitCompareArrows class="h-4 w-4" :stroke-width="1.9" />

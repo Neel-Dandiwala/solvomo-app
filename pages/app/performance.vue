@@ -448,7 +448,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
   <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Performance" dense metadata-tight />
+    <PageHeader title="Performance" dense metadata-tight hide-context />
 
     <FilterBar compact>
       <div class="flex min-w-0 flex-col gap-1.5">

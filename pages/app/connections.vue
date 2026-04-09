@@ -46,7 +46,7 @@ function variant(s: ConnectionStatus): "success" | "pending" | "warning" | "neut
   <div>
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Connections" description="Workspace-owned connectors. Brand profiles inherit access based on policies you define in Settings.">
+    <PageHeader title="Connections" description="Workspace-owned connectors. Brand profiles inherit access based on policies you define in Settings." hide-context>
       <template #actions>
         <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
           Add connector

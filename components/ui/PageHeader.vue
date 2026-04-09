@@ -3,6 +3,8 @@ const props = defineProps<{
   title: string;
   description?: string;
   eyebrow?: string;
+  /** Hide the context pill above the title (avoid \"double title\" in app tabs). */
+  hideContext?: boolean;
   /** Tighter spacing for data-dense pages (e.g. Overview). */
   dense?: boolean;
   /** Less space between title row and default slot (e.g. metadata strip). */
@@ -18,7 +20,7 @@ const contextLabel = computed(() => props.eyebrow ?? currentBrand.value?.name ??
   <header class="page-header" :class="props.dense ? 'mb-6 lg:mb-7' : 'mb-10 lg:mb-12'">
     <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between" :class="props.dense ? 'gap-5' : 'gap-8'">
       <div class="min-w-0 max-w-4xl">
-        <div class="flex flex-wrap items-center gap-3">
+        <div v-if="!props.hideContext" class="flex flex-wrap items-center gap-3">
           <div class="eyebrow rounded-full">
             <span class="eyebrow-dot" />
             <span class="truncate">{{ contextLabel }}</span>
