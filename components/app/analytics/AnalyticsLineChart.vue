@@ -13,11 +13,20 @@ const props = withDefaults(
     series: ChartSeries[];
     valueFormatter?: (value: number) => string;
     variant?: "line" | "area";
+    /** Tighter plot + clipping (e.g. Performance timeline vs full-width trend cards). */
+    compact?: boolean;
   }>(),
   {
     valueFormatter: (value: number) => `${value}`,
     variant: "line",
+    compact: false,
   },
+);
+
+const svgPlotClass = computed(() =>
+  props.compact
+    ? "h-44 w-full overflow-hidden sm:h-52 lg:h-60"
+    : "h-60 w-full overflow-visible lg:h-72",
 );
 
 const chartMax = computed(() =>
@@ -61,13 +70,13 @@ function buildAreaPath(values: number[]) {
 </script>
 
 <template>
-  <div class="sv-chart-panel">
-    <div class="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
-      <div class="hidden flex-col justify-between pb-8 pt-2 text-[12px] text-black/38 sm:flex">
+  <div class="sv-chart-panel min-h-0 w-full min-w-0">
+    <div class="grid items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-4">
+      <div class="hidden flex-col gap-1.5 pt-1 text-[12px] text-black/38 sm:flex">
         <span v-for="tick in chartTicks" :key="tick">{{ valueFormatter(tick) }}</span>
       </div>
-      <div class="min-w-0">
-        <svg viewBox="0 0 100 64" class="h-60 w-full overflow-visible lg:h-72">
+      <div class="min-h-0 min-w-0">
+        <svg viewBox="0 0 100 64" :class="svgPlotClass">
           <line x1="0" y1="14" x2="100" y2="14" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
           <line x1="0" y1="28" x2="100" y2="28" stroke="rgba(0,0,0,0.05)" stroke-width="1" />
           <line x1="0" y1="42" x2="100" y2="42" stroke="rgba(0,0,0,0.05)" stroke-width="1" />

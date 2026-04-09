@@ -518,7 +518,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       <AnalyticsMetadataStrip :items="metadataItems" />
     </SurfaceCard>
 
-    <section class="grid grid-cols-12 gap-3 lg:gap-4">
+    <section class="grid grid-cols-12 content-start items-start gap-3 lg:gap-4">
       <div class="col-span-12 flex flex-wrap gap-2">
         <StatusBadge
           v-for="signal in quickSignals"
@@ -540,7 +540,11 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
         :trend="item.trend"
         dense
       />
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex min-w-0 flex-col gap-4 xl:col-span-8">
+      <SurfaceCard
+        variant="frame"
+        padding="sm"
+        class="col-span-12 flex h-fit min-h-0 min-w-0 w-full flex-col gap-4"
+      >
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div class="flex min-w-0 items-center gap-3">
             <div :class="sectionIconClass">
@@ -562,15 +566,8 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
           </div>
         </div>
 
-        <AnalyticsLineChart
-          :labels="trendConfig.labels"
-          :series="trendConfig.series"
-          :value-formatter="trendConfig.formatter"
-          variant="area"
-        />
-
         <div
-          class="grid min-w-0 grid-cols-2 gap-3 border-t border-black/[0.06] pt-4 sm:grid-cols-4 lg:gap-0 lg:pt-4 xl:divide-x xl:divide-black/[0.06]"
+          class="grid min-w-0 grid-cols-2 gap-3 border-b border-black/[0.06] pb-4 sm:grid-cols-4 lg:gap-0 lg:pb-4 xl:divide-x xl:divide-black/[0.06]"
         >
           <div
             v-for="(stat, idx) in trendStatsRow"
@@ -582,9 +579,16 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
             <p class="mt-1.5 text-[15px] font-semibold tabular-nums text-black">{{ stat.value }}</p>
           </div>
         </div>
+
+        <AnalyticsLineChart
+          :labels="trendConfig.labels"
+          :series="trendConfig.series"
+          :value-formatter="trendConfig.formatter"
+          variant="area"
+        />
       </SurfaceCard>
 
-      <div class="col-span-12 flex min-w-0 flex-col gap-4 xl:col-span-4">
+      <div class="col-span-12 flex min-h-0 w-full flex-col gap-4">
         <SurfaceCard variant="frame" padding="sm" class="min-w-0">
           <div class="mb-4 flex items-center gap-3">
             <div :class="sectionIconClass">
