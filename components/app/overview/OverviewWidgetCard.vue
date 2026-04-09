@@ -111,7 +111,7 @@ defineEmits<{
       <button
         v-if="showDetailToggle"
         type="button"
-        class="mt-2.5 text-[12px] font-semibold text-black/45 hover:text-black"
+        class="mt-2.5 text-[13px] font-semibold text-black/45 hover:text-black"
         @click="$emit('toggle-detail')"
       >
         {{ tableExpanded ? "Less" : "Details" }}

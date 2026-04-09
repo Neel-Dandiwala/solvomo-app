@@ -5,6 +5,8 @@ const props = defineProps<{
   eyebrow?: string;
   /** Tighter spacing for data-dense pages (e.g. Overview). */
   dense?: boolean;
+  /** Less space between title row and default slot (e.g. metadata strip). */
+  metadataTight?: boolean;
 }>();
 
 const { currentBrand, currentEnvironment } = useWorkspaceContext();
@@ -13,8 +15,8 @@ const contextLabel = computed(() => props.eyebrow ?? currentBrand.value?.name ??
 </script>
 
 <template>
-  <header class="page-header" :class="dense ? 'mb-6 lg:mb-7' : 'mb-10 lg:mb-12'">
-    <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between" :class="dense ? 'gap-5' : 'gap-8'">
+  <header class="page-header" :class="props.dense ? 'mb-6 lg:mb-7' : 'mb-10 lg:mb-12'">
+    <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between" :class="props.dense ? 'gap-5' : 'gap-8'">
       <div class="min-w-0 max-w-4xl">
         <div class="flex flex-wrap items-center gap-3">
           <div class="eyebrow rounded-full">
@@ -23,10 +25,10 @@ const contextLabel = computed(() => props.eyebrow ?? currentBrand.value?.name ??
           </div>
           <EnvironmentBadge v-if="currentEnvironment?.kind" :kind="currentEnvironment.kind" />
         </div>
-        <h1 class="sv-page-title" :class="dense ? 'mt-4' : 'mt-6'">
+        <h1 class="sv-page-title" :class="props.dense ? 'mt-4' : 'mt-6'">
           {{ title }}
         </h1>
-        <p v-if="description" class="sv-page-description max-w-3xl" :class="dense ? 'mt-2' : 'mt-4'">
+        <p v-if="description" class="sv-page-description max-w-3xl" :class="props.dense ? 'mt-2' : 'mt-4'">
           {{ description }}
         </p>
       </div>
@@ -34,7 +36,7 @@ const contextLabel = computed(() => props.eyebrow ?? currentBrand.value?.name ??
         <slot name="actions" />
       </div>
     </div>
-    <div v-if="$slots.default" class="mt-6">
+    <div v-if="$slots.default" :class="props.metadataTight ? 'mt-4' : props.dense ? 'mt-5' : 'mt-6'">
       <slot />
     </div>
   </header>

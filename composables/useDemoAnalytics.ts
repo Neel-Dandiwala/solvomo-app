@@ -535,11 +535,11 @@ export function useDemoAnalytics() {
   });
 
   const performanceChannels = computed(() =>
-    ["All channels", ...new Set(performanceCampaigns.map((row) => row.channel))],
+    ["All", ...new Set(performanceCampaigns.map((row) => row.channel))],
   );
 
   const performanceRegions = computed(() =>
-    ["All regions", ...new Set(performanceCampaigns.map((row) => row.region))],
+    ["All", ...new Set(performanceCampaigns.map((row) => row.region))],
   );
 
   const creativeFormats = computed(() =>

@@ -137,7 +137,13 @@ const donutStyle = computed(() => {
   <div>
     <template v-if="payload.kind === 'kpi'">
       <div class="flex items-start justify-between gap-3">
-        <p :class="compact ? 'text-[1.5rem] font-semibold tracking-[-0.04em] text-black' : 'sv-kpi-value'">
+        <p
+          :class="
+            compact
+              ? 'text-[1.5rem] font-semibold tabular-nums tracking-[-0.04em] text-black'
+              : 'sv-kpi-value tabular-nums'
+          "
+        >
           {{ payload.kpi.value }}
         </p>
         <svg

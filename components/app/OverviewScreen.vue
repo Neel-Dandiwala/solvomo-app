@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LayoutTemplate } from "lucide-vue-next";
+import FilterBar from "~/components/ui/FilterBar.vue";
 import OverviewDashboardModal from "~/components/app/overview/OverviewDashboardModal.vue";
 import OverviewLayoutEditorModal from "~/components/app/overview/OverviewLayoutEditorModal.vue";
 import OverviewWidgetBuilderModal from "~/components/app/overview/OverviewWidgetBuilderModal.vue";
@@ -39,8 +40,8 @@ const selectedRange = ref<4 | 7 | 0>(7);
 const tableDetailId = ref<string | null>(null);
 
 const rangeOptions = [
-  { id: 4, label: "4D" },
-  { id: 7, label: "7D" },
+  { id: 4, label: "4 days" },
+  { id: 7, label: "7 days" },
   { id: 0, label: "All" },
 ] as const;
 
@@ -165,39 +166,57 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
 </script>
 
 <template>
-  <div class="max-w-full space-y-3 overflow-x-hidden pb-2 lg:space-y-4">
+  <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Overview" dense>
-      <template #actions>
-        <div class="flex w-full min-w-0 flex-wrap items-center gap-2 sm:gap-3 xl:max-w-none xl:justify-end">
-          <select v-model="selectedDashboardId" class="app-control min-w-0 flex-1 sm:min-w-[11rem] sm:flex-none">
-            <option v-for="dashboard in dashboards" :key="dashboard.id" :value="dashboard.id">
-              {{ dashboard.name }}
-            </option>
-          </select>
-          <select v-model="selectedRange" class="app-control min-w-[6.5rem]">
-            <option v-for="option in rangeOptions" :key="option.id" :value="option.id">
-              {{ option.label }}
-            </option>
-          </select>
-          <button type="button" class="app-button button-secondary h-10 px-3 text-sm" @click="layoutEditorOpen = true">
-            Layout
-          </button>
-          <button type="button" class="app-button button-secondary h-10 px-3 text-sm" @click="widgetBuilderOpen = true">
-            Add widget
-          </button>
-          <button
-            type="button"
-            class="inline-flex h-10 shrink-0 items-center gap-2 rounded-[var(--sv-radius-control,0.75rem)] border border-black/[0.1] bg-white px-3 text-sm font-semibold text-black/85 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition hover:border-black/18 hover:bg-black/[0.02]"
-            @click="dashboardModalOpen = true"
-          >
-            <LayoutTemplate class="h-4 w-4 text-black/55" :stroke-width="1.9" aria-hidden="true" />
-            Custom dashboard
-          </button>
-        </div>
-      </template>
-    </PageHeader>
+    <PageHeader title="Overview" dense metadata-tight />
+
+    <FilterBar compact>
+      <div class="flex min-w-0 flex-col gap-1.5">
+        <label for="overview-dashboard" class="sv-section-title">Dashboard</label>
+        <select
+          id="overview-dashboard"
+          v-model="selectedDashboardId"
+          class="app-control min-w-0 sm:min-w-[12rem]"
+        >
+          <option v-for="dashboard in dashboards" :key="dashboard.id" :value="dashboard.id">
+            {{ dashboard.name }}
+          </option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="overview-range" class="sv-section-title">Range</label>
+        <select id="overview-range" v-model="selectedRange" class="app-control min-w-[8.5rem]">
+          <option v-for="option in rangeOptions" :key="option.id" :value="option.id">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="app-button button-secondary min-h-[3rem] px-3 text-sm"
+          @click="layoutEditorOpen = true"
+        >
+          Layout
+        </button>
+        <button
+          type="button"
+          class="app-button button-secondary min-h-[3rem] px-3 text-sm"
+          @click="widgetBuilderOpen = true"
+        >
+          Add widget
+        </button>
+        <button
+          type="button"
+          class="inline-flex min-h-[3rem] shrink-0 items-center gap-2 rounded-[var(--sv-radius-control)] border border-[var(--sv-line)] bg-white px-3.5 text-sm font-semibold text-black/85 shadow-[0_10px_24px_-26px_rgba(15,23,42,0.18)] transition hover:border-black/18 hover:bg-black/[0.02]"
+          @click="dashboardModalOpen = true"
+        >
+          <LayoutTemplate class="h-4 w-4 text-black/55" :stroke-width="1.9" aria-hidden="true" />
+          Custom dashboard
+        </button>
+      </div>
+    </FilterBar>
 
     <!-- Single operating strip: context + KPIs (no stacked section titles) -->
     <SurfaceCard
@@ -208,10 +227,10 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
     >
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
         <div class="min-w-0 lg:max-w-[42%]">
-          <p class="text-[13px] font-semibold text-black">
+          <p class="text-[15px] font-semibold tracking-[-0.02em] text-black">
             {{ currentDashboard?.name ?? "Overview" }}
           </p>
-          <p v-if="bulletLine" class="mt-1 text-[12px] leading-snug text-black/55">
+          <p v-if="bulletLine" class="mt-1.5 text-[12px] leading-snug text-black/55">
             {{ bulletLine }}
           </p>
         </div>
@@ -224,7 +243,7 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
             class="min-w-0 lg:px-4"
             :class="[idx === 0 && 'lg:pl-0', idx === executiveKpiCards.length - 1 && 'lg:pr-0']"
           >
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-black/40">
+            <p class="sv-section-title">
               {{ card.widget.title }}
             </p>
             <div class="mt-1.5">

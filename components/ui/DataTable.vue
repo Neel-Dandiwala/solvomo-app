@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import type { DataTableColumn } from "~/types/app-shell";
 
-const props = defineProps<{
-  columns: DataTableColumn[];
-  rows: Record<string, unknown>[];
-  rowKey: string;
-  emptyLabel?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    columns: DataTableColumn[];
+    rows: Record<string, unknown>[];
+    rowKey: string;
+    emptyLabel?: string;
+    /** Flush inside a parent SurfaceCard (no outer radius / top border). */
+    embed?: boolean;
+    /** When set, that row gets a subtle selected background (e.g. detail panel sync). */
+    highlightRowKey?: string | null;
+  }>(),
+  { embed: false, highlightRowKey: null },
+);
 
 const emit = defineEmits<{
   "row-click": [row: Record<string, unknown>];
@@ -18,7 +25,14 @@ function cell(row: Record<string, unknown>, key: string) {
 </script>
 
 <template>
-  <div class="data-table-wrap overflow-hidden rounded-[1.5rem] border border-black/8 bg-white">
+  <div
+    class="data-table-wrap overflow-hidden bg-white"
+    :class="
+      embed
+        ? 'rounded-b-[1.25rem] border border-t-0 border-black/[0.08]'
+        : 'rounded-[1.5rem] border border-black/8'
+    "
+  >
     <div class="overflow-x-auto">
       <table class="data-table min-w-full text-left text-[15px]">
         <thead>
@@ -44,6 +58,11 @@ function cell(row: Record<string, unknown>, key: string) {
             v-for="(row, idx) in rows"
             :key="String(row[rowKey] ?? idx)"
             class="data-table-row cursor-pointer transition-colors hover:bg-black/[0.02]"
+            :class="
+              highlightRowKey != null && String(row[rowKey]) === highlightRowKey
+                ? 'bg-[rgba(91,123,225,0.06)] hover:bg-[rgba(91,123,225,0.08)]'
+                : ''
+            "
             @click="emit('row-click', row)"
           >
             <td

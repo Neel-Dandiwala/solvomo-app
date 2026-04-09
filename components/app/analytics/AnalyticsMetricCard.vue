@@ -11,6 +11,8 @@ const props = withDefaults(
     icon?: unknown;
     badge?: string;
     trend?: number[];
+    /** Align with Overview widget cards: tighter padding and rhythm */
+    dense?: boolean;
   }>(),
   {
     delta: "",
@@ -19,6 +21,7 @@ const props = withDefaults(
     icon: null,
     badge: "",
     trend: () => [],
+    dense: false,
   },
 );
 
@@ -41,12 +44,12 @@ const maxTrendValue = computed(() => Math.max(1, ...props.trend));
 </script>
 
 <template>
-  <SurfaceCard variant="frame" padding="md" class="sv-kpi-card min-w-0">
+  <SurfaceCard variant="frame" :padding="dense ? 'sm' : 'md'" class="sv-kpi-card min-w-0">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <p class="sv-kpi-label">{{ title }}</p>
-        <div class="mt-5 flex items-end gap-3">
-          <p class="sv-kpi-value">{{ value }}</p>
+        <div :class="dense ? 'mt-3 flex items-end gap-2' : 'mt-5 flex items-end gap-3'">
+          <p class="sv-kpi-value tabular-nums">{{ value }}</p>
           <span
             v-if="badge"
             class="inline-flex h-7 items-center rounded-full border border-black/8 bg-black/[0.03] px-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-black/58"
@@ -59,13 +62,17 @@ const maxTrendValue = computed(() => Math.max(1, ...props.trend));
         v-if="icon"
         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.025] text-black/62"
       >
-        <component :is="icon" class="h-4.5 w-4.5" :stroke-width="1.9" />
+        <component :is="icon" class="h-5 w-5" :stroke-width="1.9" />
       </div>
     </div>
 
     <div
       v-if="trend.length"
-      class="mt-5 flex h-11 items-end gap-1.5 rounded-[1rem] border border-black/6 bg-black/[0.02] px-2.5 py-2"
+      :class="
+        dense
+          ? 'mt-3 flex h-9 items-end gap-1 rounded-lg border border-black/[0.06] bg-black/[0.02] px-2 py-1.5'
+          : 'mt-5 flex h-11 items-end gap-1.5 rounded-[1rem] border border-black/6 bg-black/[0.02] px-2.5 py-2'
+      "
     >
       <span
         v-for="(value, index) in trend"
@@ -75,7 +82,7 @@ const maxTrendValue = computed(() => Math.max(1, ...props.trend));
       />
     </div>
 
-    <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+    <div :class="dense ? 'mt-3 flex flex-wrap items-center justify-between gap-2' : 'mt-5 flex flex-wrap items-center justify-between gap-3'">
       <span
         v-if="delta"
         class="inline-flex min-h-[2rem] items-center rounded-full border px-3 py-1 text-[13px] font-semibold tracking-[-0.01em]"

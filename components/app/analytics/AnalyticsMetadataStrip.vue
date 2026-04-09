@@ -10,14 +10,17 @@ defineProps<{
 </script>
 
 <template>
-  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <div
+    class="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-0 xl:divide-x xl:divide-black/[0.06]"
+  >
     <div
-      v-for="item in items"
+      v-for="(item, idx) in items"
       :key="item.label"
-      class="sv-card-inset rounded-[1.25rem] px-4 py-3.5"
+      class="min-w-0 lg:px-4"
+      :class="[idx === 0 && 'lg:pl-0', idx === items.length - 1 && 'lg:pr-0']"
     >
       <p class="sv-section-title">{{ item.label }}</p>
-      <p class="mt-2 text-[0.98rem] font-semibold tracking-[-0.02em] text-black">
+      <p class="mt-1.5 text-[15px] font-semibold tabular-nums tracking-[-0.02em] text-black">
         {{ item.value }}
       </p>
     </div>
