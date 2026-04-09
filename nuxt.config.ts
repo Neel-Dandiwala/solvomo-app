@@ -8,6 +8,18 @@ export default defineNuxtConfig({
   ssr: false,
   css: ["~/assets/css/main.css"],
   modules: ["@nuxtjs/tailwindcss"],
+  nitro: {
+    routeRules: {
+      // Hashed assets are safe to cache forever; mismatched HTML + old preload hints cause chunk import failures.
+      "/_nuxt/**": {
+        headers: { "cache-control": "public, max-age=31536000, immutable" },
+      },
+      // SPA HTML responses (all routes): revalidate so chunk preloads match the deployed manifest.
+      "/**": {
+        headers: { "cache-control": "no-cache, private, must-revalidate" },
+      },
+    },
+  },
   vite: {
     plugins: [vueRouterDevtoolsNullGuard()],
     resolve: {
