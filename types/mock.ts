@@ -38,7 +38,11 @@ export type OverviewWidgetVisualization =
   | "stacked_bar"
   | "insights"
   | "connections"
-  | "alerts";
+  | "alerts"
+  | "horizontal_bar"
+  | "funnel"
+  | "signal_list"
+  | "metric_delta";
 export type OverviewWidgetMetric =
   | "spend"
   | "revenue"
@@ -99,6 +103,8 @@ export interface OverviewTrendPoint {
   closedRevenue: number;
   /** Site-wide conversions (e.g. lead forms); used for conversion trend */
   conversions?: number;
+  /** $k-style proxy for CAC sparkline when present */
+  cac?: number;
 }
 
 export interface OverviewPlatformSummary {
@@ -140,12 +146,71 @@ export interface OverviewCampaignCluster {
 export interface OverviewFunnelStage {
   stage: string;
   value: number;
+  /** Conversion rate from previous stage, 0–100 */
+  rateFromPrev?: number;
+}
+
+export type OverviewPrioritySignalSeverity = "critical" | "warning" | "info";
+
+export interface OverviewPrioritySignal {
+  id: string;
+  headline: string;
+  severity: OverviewPrioritySignalSeverity;
+  kind?: OverviewInsightKind;
+  /** e.g. "+18% spend" or "ROAS 3.2x" */
+  delta?: string;
+}
+
+export interface OverviewAttributionMixRow {
+  label: string;
+  value: number;
+}
+
+export interface OverviewCampaignEfficiencyRow {
+  id: string;
+  name: string;
+  spend: number;
+  revenue: number;
+  roi: number;
+}
+
+export interface OverviewCreatorRow {
+  id: string;
+  name: string;
+  spend: number;
+  revenue: number;
+  roi: number;
+}
+
+export interface OverviewRevenueAttributionSplit {
+  direct: number;
+  assisted: number;
+}
+
+export interface OverviewNewVsReturning {
+  newRevenue: number;
+  returningRevenue: number;
+}
+
+export interface OverviewLeadSourceQualityRow {
+  source: string;
+  volume: number;
+  pipelineQuality: number;
+  revenue: number;
+}
+
+export interface OverviewBudgetRecommendation {
+  id: string;
+  action: string;
+  impact: string;
 }
 
 export interface OverviewConnectionsSummary {
   connected: number;
   syncing: number;
   attention: number;
+  lastSyncLabel?: string;
+  delayedSources?: string[];
 }
 
 export interface OverviewCreativeLeaderboardRow {
@@ -161,6 +226,7 @@ export interface OverviewPerformanceChange {
   label: string;
   delta: string;
   period: string;
+  tone?: "positive" | "negative" | "neutral";
 }
 
 export interface OverviewWidgetConfig {
@@ -197,6 +263,17 @@ export interface OverviewData {
   connectionsSummary: OverviewConnectionsSummary;
   creativeLeaderboard: OverviewCreativeLeaderboardRow[];
   performanceChanges: OverviewPerformanceChange[];
+  /** Top priority risks/opportunities beside hero */
+  prioritySignals: OverviewPrioritySignal[];
+  /** Matched vs modeled vs unattributed (volume index) */
+  attributionMix: OverviewAttributionMixRow[];
+  /** Named campaigns */
+  campaignEfficiency: OverviewCampaignEfficiencyRow[];
+  creatorSummaries: OverviewCreatorRow[];
+  revenueAttributionSplit: OverviewRevenueAttributionSplit;
+  newVsReturning: OverviewNewVsReturning;
+  leadSourceQuality: OverviewLeadSourceQualityRow[];
+  budgetRecommendations: OverviewBudgetRecommendation[];
   widgets: OverviewWidgetConfig[];
   dashboards: OverviewDashboardConfig[];
 }

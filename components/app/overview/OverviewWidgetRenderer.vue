@@ -43,7 +43,8 @@ const chartMax = computed(() => {
 
 const chartTicks = computed(() => {
   if (props.payload.kind !== "chart") return [];
-  return [chartMax.value, chartMax.value * 0.66, chartMax.value * 0.33, 0].map((value) => formatScaleValue(value));
+  const fmt = props.payload.orientation === "horizontal" ? formatAxisTick : formatScaleValue;
+  return [chartMax.value, chartMax.value * 0.66, chartMax.value * 0.33, 0].map((value) => fmt(value));
 });
 
 const donutTotal = computed(() => {
@@ -82,6 +83,13 @@ function formatScaleValue(value: number) {
   if (value >= 10) return `${value.toFixed(0)}k`;
   if (value > 0) return `${value.toFixed(1)}k`;
   return "0";
+}
+
+/** Axis ticks for ROI-like scales (no `k` suffix). */
+function formatAxisTick(value: number) {
+  if (value <= 0) return "0";
+  if (value < 20) return value.toFixed(1);
+  return formatScaleValue(value);
 }
 
 function segmentShare(value: number) {
@@ -172,7 +180,32 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'chart'">
-      <template v-if="payload.visualization === 'bar'">
+      <template v-if="payload.visualization === 'bar' && payload.orientation === 'horizontal'">
+        <div class="min-w-0 space-y-2">
+          <div
+            v-for="(label, index) in payload.labels"
+            :key="label"
+            class="grid grid-cols-[minmax(0,5.5rem)_1fr] items-center gap-2 sm:grid-cols-[minmax(0,7rem)_1fr] sm:gap-3"
+          >
+            <span class="truncate text-[11px] font-medium leading-tight text-black/55" :title="label">{{ label }}</span>
+            <div class="flex min-w-0 items-center gap-2">
+              <div class="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-black/[0.06]">
+                <div
+                  v-for="series in payload.series"
+                  :key="series.label"
+                  class="h-full rounded-full"
+                  :class="colorClass(series.color)"
+                  :style="{ width: `${((series.values[index] ?? 0) / chartMax) * 100}%` }"
+                />
+              </div>
+              <span class="w-10 shrink-0 text-right text-[11px] font-semibold tabular-nums text-black/70">
+                {{ formatAxisTick(payload.series[0]?.values[index] ?? 0) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="payload.visualization === 'bar'">
         <div class="min-w-0">
           <div class="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-3">
             <div class="hidden flex-col justify-between pb-6 pt-1 text-[11px] tabular-nums text-black/35 sm:flex">
@@ -187,7 +220,7 @@ const donutStyle = computed(() => {
                       :key="`${label}-${series.label}`"
                       class="w-full max-w-[2.25rem] rounded-t-md sm:max-w-none sm:rounded-t-lg"
                       :class="colorClass(series.color)"
-                      :style="{ height: `${(series.values[index] / chartMax) * 100}%` }"
+                      :style="{ height: `${((series.values[index] ?? 0) / chartMax) * 100}%` }"
                     />
                   </div>
                   <span class="text-center text-[11px] font-medium leading-tight text-black/50">{{ label }}</span>
@@ -322,6 +355,85 @@ const donutStyle = computed(() => {
       </div>
     </template>
 
+    <template v-else-if="payload.kind === 'funnel'">
+      <div class="flex min-w-0 flex-col gap-1">
+        <div
+          v-for="(stage, idx) in payload.stages"
+          :key="stage.label"
+        >
+          <div
+            class="flex items-center justify-between gap-2 rounded-lg border border-black/[0.06] bg-black/[0.02] px-3 py-2"
+            :style="{ width: `${Math.max(28, 28 + (stage.value / (payload.stages[0]?.value || 1)) * 72)}%` }"
+          >
+            <span class="truncate text-[12px] font-semibold text-black/80">{{ stage.label }}</span>
+            <span class="shrink-0 text-[12px] font-semibold tabular-nums text-black/60">{{ stage.value.toLocaleString() }}</span>
+          </div>
+          <p
+            v-if="idx < payload.stages.length - 1 && payload.stages[idx + 1]?.rateFromPrev != null"
+            class="mt-1 mb-1 pl-1 text-[10px] font-medium tabular-nums text-black/40"
+          >
+            → {{ (payload.stages[idx + 1]?.rateFromPrev ?? 0).toFixed(1) }}% to next
+          </p>
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="payload.kind === 'signal_list'">
+      <ul class="space-y-2.5">
+        <li
+          v-for="item in payload.items"
+          :key="item.id"
+          class="flex gap-2.5 rounded-lg border border-black/[0.06] bg-white px-3 py-2.5"
+          :class="
+            item.severity === 'critical'
+              ? 'border-red-500/20 bg-red-500/[0.04]'
+              : item.severity === 'warning'
+                ? 'border-amber-500/25 bg-amber-500/[0.05]'
+                : 'border-black/[0.06]'
+          "
+        >
+          <span
+            class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+            :class="
+              item.severity === 'critical'
+                ? 'bg-red-500'
+                : item.severity === 'warning'
+                  ? 'bg-amber-500'
+                  : 'bg-[#5B7BE1]'
+            "
+            aria-hidden="true"
+          />
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-semibold leading-snug text-black">{{ item.headline }}</p>
+            <p v-if="item.delta" class="mt-0.5 text-[11px] font-medium tabular-nums text-black/45">{{ item.delta }}</p>
+          </div>
+        </li>
+      </ul>
+    </template>
+
+    <template v-else-if="payload.kind === 'metric_delta'">
+      <ul class="divide-y divide-black/[0.06]">
+        <li v-for="row in payload.items" :key="row.id" class="flex items-start justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+          <div class="min-w-0">
+            <p class="text-[13px] font-semibold text-black">{{ row.label }}</p>
+            <p class="text-[11px] text-black/45">{{ row.period }}</p>
+          </div>
+          <span
+            class="shrink-0 text-[13px] font-semibold tabular-nums"
+            :class="
+              row.tone === 'positive'
+                ? 'text-[rgba(30,58,138,0.9)]'
+                : row.tone === 'negative'
+                  ? 'text-red-800/90'
+                  : 'text-black/70'
+            "
+          >
+            {{ row.delta }}
+          </span>
+        </li>
+      </ul>
+    </template>
+
     <template v-else-if="payload.kind === 'insights'">
       <div class="grid gap-4 lg:grid-cols-2">
         <article
@@ -363,19 +475,31 @@ const donutStyle = computed(() => {
     </template>
 
     <template v-else-if="payload.kind === 'connections'">
-      <div class="flex divide-x divide-black/[0.06]">
-        <div class="min-w-0 flex-1 pr-3">
-          <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Connected</p>
-          <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.connected }}</p>
+      <div class="space-y-3">
+        <div class="flex divide-x divide-black/[0.06]">
+          <div class="min-w-0 flex-1 pr-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Connected</p>
+            <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.connected }}</p>
+          </div>
+          <div class="min-w-0 flex-1 px-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Syncing</p>
+            <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.syncing }}</p>
+          </div>
+          <div class="min-w-0 flex-1 pl-3">
+            <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Attention</p>
+            <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.attention }}</p>
+          </div>
         </div>
-        <div class="min-w-0 flex-1 px-3">
-          <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Syncing</p>
-          <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.syncing }}</p>
-        </div>
-        <div class="min-w-0 flex-1 pl-3">
-          <p class="text-[10px] font-semibold uppercase tracking-wide text-black/40">Attention</p>
-          <p class="mt-1 text-xl font-semibold tabular-nums tracking-tight text-black sm:text-2xl">{{ payload.summary.attention }}</p>
-        </div>
+        <p v-if="payload.summary.lastSyncLabel" class="text-[11px] font-medium text-black/50">
+          {{ payload.summary.lastSyncLabel }}
+        </p>
+        <p
+          v-if="payload.summary.delayedSources?.length"
+          class="rounded-md border border-amber-500/20 bg-amber-500/[0.06] px-2.5 py-1.5 text-[11px] leading-snug text-amber-950/80"
+        >
+          <span class="font-semibold">Delayed:</span>
+          {{ payload.summary.delayedSources.join(" · ") }}
+        </p>
       </div>
     </template>
   </div>

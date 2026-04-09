@@ -28,6 +28,7 @@ export type OverviewWidgetPayload =
       visualization: "bar" | "line" | "area" | "stacked_bar";
       labels: string[];
       series: WidgetSeries[];
+      orientation?: "vertical" | "horizontal";
     }
   | {
       kind: "donut";
@@ -49,6 +50,18 @@ export type OverviewWidgetPayload =
   | {
       kind: "connections";
       summary: NonNullable<ReturnType<typeof useAppData>["overview"]["value"]>["connectionsSummary"];
+    }
+  | {
+      kind: "signal_list";
+      items: NonNullable<ReturnType<typeof useAppData>["overview"]["value"]>["prioritySignals"];
+    }
+  | {
+      kind: "funnel";
+      stages: Array<{ label: string; value: number; rateFromPrev?: number }>;
+    }
+  | {
+      kind: "metric_delta";
+      items: NonNullable<ReturnType<typeof useAppData>["overview"]["value"]>["performanceChanges"];
     };
 
 function formatCompactCurrency(value: number) {
@@ -84,7 +97,13 @@ function sparklineForMetric(
   else if (metric === "closed_revenue") raw = slice.map((p) => p.closedRevenue);
   else if (metric === "pipeline_revenue") raw = slice.map((p) => p.pipelineRevenue);
   else if (metric === "qualified_leads") raw = slice.map((p) => p.qualifiedLeads);
-  else return undefined;
+  else if (metric === "roi") raw = slice.map((p) => p.revenue / Math.max(p.spend, 0.01));
+  else if (metric === "cac") {
+    raw = slice.map((p) => {
+      if (p.cac !== undefined) return p.cac;
+      return (p.spend / Math.max(p.qualifiedLeads, 1)) * 100;
+    });
+  } else return undefined;
   const max = Math.max(...raw, 1e-6);
   return raw.map((v) => v / max);
 }
@@ -111,6 +130,8 @@ function groupSpendRecords(records: OverviewSpendRecord[], by: "channel" | "vend
   };
 }
 
+const DONUT_COLORS = ["brand", "product", "interaction", "depth"] as const;
+
 export function useOverviewWidgetPayloads() {
   const { overview, alerts } = useAppData();
 
@@ -132,11 +153,47 @@ export function useOverviewWidgetPayloads() {
     }
 
     if (widget.visualization === "alerts") {
-      return { kind: "alerts", items: alerts.value.slice(0, 3) };
+      return { kind: "alerts", items: alerts.value.slice(0, 5) };
     }
 
     if (widget.visualization === "connections") {
       return { kind: "connections", summary: snapshot.connectionsSummary };
+    }
+
+    if (widget.visualization === "signal_list") {
+      return { kind: "signal_list", items: snapshot.prioritySignals.slice(0, 5) };
+    }
+
+    if (widget.visualization === "funnel" && widget.datasetKey === "funnel") {
+      return {
+        kind: "funnel",
+        stages: snapshot.funnel.map((stage) => ({
+          label: stage.stage,
+          value: stage.value,
+          rateFromPrev: stage.rateFromPrev,
+        })),
+      };
+    }
+
+    if (widget.visualization === "metric_delta") {
+      return { kind: "metric_delta", items: snapshot.performanceChanges };
+    }
+
+    if (widget.visualization === "horizontal_bar" && widget.datasetKey === "platformSummaries") {
+      const sorted = [...snapshot.platformSummaries].sort((a, b) => b.roi - a.roi);
+      return {
+        kind: "chart",
+        visualization: "bar",
+        orientation: "horizontal",
+        labels: sorted.map((row) => row.platform),
+        series: [
+          {
+            label: "ROI",
+            color: "interaction",
+            values: sorted.map((row) => row.roi),
+          },
+        ],
+      };
     }
 
     if (widget.visualization === "table") {
@@ -191,37 +248,150 @@ export function useOverviewWidgetPayloads() {
           })),
         };
       }
+      if (widget.datasetKey === "campaignEfficiency") {
+        return {
+          kind: "table",
+          columns: [
+            { key: "name", label: "Campaign" },
+            { key: "spend", label: "Spend" },
+            { key: "revenue", label: "Revenue" },
+            { key: "roi", label: "ROI" },
+          ],
+          rows: snapshot.campaignEfficiency.map((row) => ({
+            name: row.name,
+            spend: formatCompactCurrency(row.spend),
+            revenue: formatCompactCurrency(row.revenue),
+            roi: `${row.roi.toFixed(1)}x`,
+          })),
+        };
+      }
+      if (widget.datasetKey === "creatorSummaries") {
+        return {
+          kind: "table",
+          columns: [
+            { key: "name", label: "Creator" },
+            { key: "spend", label: "Spend" },
+            { key: "revenue", label: "Revenue" },
+            { key: "roi", label: "ROI" },
+          ],
+          rows: snapshot.creatorSummaries.map((row) => ({
+            name: row.name,
+            spend: formatCompactCurrency(row.spend),
+            revenue: formatCompactCurrency(row.revenue),
+            roi: `${row.roi.toFixed(1)}x`,
+          })),
+        };
+      }
+      if (widget.datasetKey === "budgetRecommendations") {
+        return {
+          kind: "table",
+          columns: [
+            { key: "action", label: "Action" },
+            { key: "impact", label: "Impact" },
+          ],
+          rows: snapshot.budgetRecommendations.map((row) => ({
+            action: row.action,
+            impact: row.impact,
+          })),
+        };
+      }
+      if (widget.datasetKey === "leadSourceQuality") {
+        return {
+          kind: "table",
+          columns: [
+            { key: "source", label: "Source" },
+            { key: "volume", label: "Leads" },
+            { key: "pipelineQuality", label: "Quality" },
+            { key: "revenue", label: "Revenue" },
+          ],
+          rows: snapshot.leadSourceQuality.map((row) => ({
+            source: row.source,
+            volume: String(row.volume),
+            pipelineQuality: `${row.pipelineQuality}`,
+            revenue: formatCompactCurrency(row.revenue),
+          })),
+        };
+      }
     }
 
     if (widget.visualization === "donut") {
-      const sourceRows =
-        widget.datasetKey === "leadSourceSummaries"
-          ? snapshot.leadSourceSummaries.map((row) => ({
-              label: row.source,
-              value:
-                widget.metric === "deals"
-                  ? row.deals
-                  : widget.metric === "revenue"
-                    ? row.revenue
-                    : row.qualifiedLeads,
-            }))
-          : snapshot.platformSummaries.map((row) => ({
-              label: row.platform,
-              value:
-                widget.metric === "spend"
-                  ? row.spend
-                  : widget.metric === "revenue"
-                    ? row.revenue
-                    : row.qualifiedLeads,
-            }));
-
+      if (widget.datasetKey === "attributionMix") {
+        return {
+          kind: "donut",
+          segments: snapshot.attributionMix.map((row, index) => ({
+            label: row.label,
+            value: row.value,
+            color: DONUT_COLORS[index % 4]!,
+          })),
+        };
+      }
+      if (widget.datasetKey === "revenueAttributionSplit") {
+        const s = snapshot.revenueAttributionSplit;
+        return {
+          kind: "donut",
+          segments: [
+            { label: "Direct", value: s.direct, color: "brand" },
+            { label: "Assisted", value: s.assisted, color: "product" },
+          ],
+        };
+      }
+      if (widget.datasetKey === "newVsReturning") {
+        const n = snapshot.newVsReturning;
+        return {
+          kind: "donut",
+          segments: [
+            { label: "New", value: n.newRevenue, color: "depth" },
+            { label: "Returning", value: n.returningRevenue, color: "interaction" },
+          ],
+        };
+      }
+      if (widget.datasetKey === "leadSourceSummaries") {
+        const sourceRows = snapshot.leadSourceSummaries.map((row) => ({
+          label: row.source,
+          value:
+            widget.metric === "deals"
+              ? row.deals
+              : widget.metric === "revenue"
+                ? row.revenue
+                : row.qualifiedLeads,
+        }));
+        return {
+          kind: "donut",
+          segments: sourceRows.map((row, index) => ({
+            label: row.label,
+            value: row.value,
+            color: DONUT_COLORS[index % 4]!,
+          })),
+        };
+      }
+      const sourceRows = snapshot.platformSummaries.map((row) => ({
+        label: row.platform,
+        value:
+          widget.metric === "spend"
+            ? row.spend
+            : widget.metric === "revenue"
+              ? row.revenue
+              : row.qualifiedLeads,
+      }));
       return {
         kind: "donut",
         segments: sourceRows.map((row, index) => ({
           label: row.label,
           value: row.value,
-          color: (["brand", "product", "interaction", "depth"][index % 4] ?? "product") as "brand" | "product" | "interaction" | "depth",
+          color: DONUT_COLORS[index % 4]!,
         })),
+      };
+    }
+
+    if (widget.datasetKey === "channelCompare") {
+      return {
+        kind: "chart",
+        visualization: "bar",
+        labels: snapshot.platformSummaries.map((row) => row.platform),
+        series: [
+          { label: "Spend", color: "depth", values: snapshot.platformSummaries.map((row) => row.spend) },
+          { label: "Revenue", color: "product", values: snapshot.platformSummaries.map((row) => row.revenue) },
+        ],
       };
     }
 
@@ -335,7 +505,7 @@ export function useOverviewWidgetPayloads() {
       };
     }
 
-    if (widget.datasetKey === "funnel") {
+    if (widget.datasetKey === "funnel" && widget.visualization === "bar") {
       return {
         kind: "chart",
         visualization: "bar",

@@ -67,9 +67,15 @@ watch(
 
 function datasetKeyForSelection() {
   if (visualization.value === "kpi") return "kpis";
+  if (visualization.value === "signal_list") return "prioritySignals";
+  if (visualization.value === "metric_delta") return "performanceChanges";
+  if (visualization.value === "horizontal_bar") return "platformSummaries";
+  if (visualization.value === "funnel") return "funnel";
   if (source.value === "ad_data" && dimension.value === "campaign_cluster") return "campaignClusters";
   if (source.value === "crm_data" && dimension.value === "lead_source") return "leadSourceSummaries";
   if (source.value === "spend_data") return "spendRecords";
+  if (source.value === "alerts") return "alerts";
+  if (source.value === "connections") return "connectionsSummary";
   if (dimension.value === "date") return "trendPoints";
   return "platformSummaries";
 }

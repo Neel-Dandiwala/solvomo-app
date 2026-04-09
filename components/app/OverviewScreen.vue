@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, LayoutTemplate } from "lucide-vue-next";
+import { LayoutTemplate } from "lucide-vue-next";
 import OverviewDashboardModal from "~/components/app/overview/OverviewDashboardModal.vue";
 import OverviewLayoutEditorModal from "~/components/app/overview/OverviewLayoutEditorModal.vue";
 import OverviewWidgetBuilderModal from "~/components/app/overview/OverviewWidgetBuilderModal.vue";
@@ -13,13 +13,8 @@ type KpiCard = {
   payload: OverviewWidgetPayload;
 };
 
-/** Default surface: hero + attention + two supporting metrics — rest behind “More”. */
-const PRIMARY_CHART_ORDER = [
-  "w-trend-spend-revenue",
-  "w-alerts",
-  "w-roi-platform",
-  "w-funnel",
-] as const;
+/** Hero row: main trend + priority signals only */
+const PRIMARY_CHART_ORDER = ["w-trend-spend-revenue", "w-signals-priority"] as const;
 
 const curatedKpiIds = ["spend", "revenue", "roi", "cac", "pipeline_revenue"] as const;
 
@@ -42,7 +37,6 @@ const dashboardModalOpen = ref(false);
 const layoutEditorOpen = ref(false);
 const selectedRange = ref<4 | 7 | 0>(7);
 const tableDetailId = ref<string | null>(null);
-const moreExpanded = ref(false);
 
 const rangeOptions = [
   { id: 4, label: "4D" },
@@ -80,7 +74,7 @@ const primaryCharts = computed(() => {
   const first = charts[0];
   if (!first) return [];
   const hero = first.size === "lg" ? first : charts.find((w) => w.size === "lg") ?? first;
-  const rest = charts.filter((w) => w.id !== hero.id).slice(0, 3);
+  const rest = charts.filter((w) => w.id !== hero.id).slice(0, 1);
   return [hero, ...rest];
 });
 
@@ -106,21 +100,26 @@ const heroRiskLine = computed(
 function widgetCallout(widget: OverviewWidgetConfig): string | null {
   if (widget.id === "w-trend-spend-revenue" || widget.size === "lg") return null;
   const list = insightItems.value;
-  if (widget.id === "w-roi-platform")
+  if (widget.id === "w-roi-h" || widget.id === "w-roi-platform")
     return list.find((i: OverviewInsight) => i.relatedMetric === "roi")?.because ?? null;
-  if (widget.id === "w-funnel")
+  if (widget.id === "w-funnel-viz" || widget.id === "w-funnel")
     return list.find((i: OverviewInsight) => i.id === "ins-4")?.because ?? null;
   return null;
 }
 
-function primaryGridClass(_widget: OverviewWidgetConfig, index: number) {
+function primaryGridClass(widget: OverviewWidgetConfig, index: number) {
   const list = primaryCharts.value;
   if (list.length === 1) return "col-span-12";
   const first = list[0];
   const hasHero = Boolean(first && (first.id === "w-trend-spend-revenue" || first.size === "lg"));
   if (index === 0 && hasHero) return "col-span-12 xl:col-span-8";
   if (index === 1 && hasHero) return "col-span-12 xl:col-span-4";
-  return "col-span-12 md:col-span-6";
+  return "col-span-12 md:col-span-6 xl:col-span-4";
+}
+
+function gridClassForWidget(widget: OverviewWidgetConfig) {
+  if (widget.size === "full") return "col-span-12";
+  return "col-span-12 md:col-span-6 xl:col-span-4";
 }
 
 function widgetPayload(widgetId: string) {
@@ -134,10 +133,6 @@ const executiveKpiCards = computed(() =>
     .map((widget: OverviewWidgetConfig) => ({ widget, payload: widgetPayload(widget.id) }))
     .filter((card): card is KpiCard => Boolean(card.payload)),
 );
-
-function gridClassFor(widget: OverviewWidgetConfig) {
-  return "col-span-12 sm:col-span-6 xl:col-span-4";
-}
 
 function isHeroWidget(widget: OverviewWidgetConfig) {
   return widget.id === "w-trend-spend-revenue" || widget.size === "lg";
@@ -240,8 +235,8 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
       </div>
     </SurfaceCard>
 
-    <!-- Primary operating grid: one hero row + supporting row -->
-    <section v-if="primaryCharts.length" class="grid grid-cols-12 gap-3 lg:gap-4">
+    <!-- Primary row (hero + signals) + full dashboard grid -->
+    <section v-if="chartWidgets.length" class="grid grid-cols-12 gap-3 lg:gap-4">
       <OverviewWidgetCard
         v-for="(widget, idx) in primaryCharts"
         :key="widget.id"
@@ -259,37 +254,20 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
         :show-divider="true"
         @toggle-detail="toggleTableDetail(widget.id)"
       />
+      <OverviewWidgetCard
+        v-for="widget in secondaryCharts"
+        :key="widget.id"
+        :widget="widget"
+        :payload="widgetPayload(widget.id)"
+        :grid-class="gridClassForWidget(widget)"
+        :callout="widgetCallout(widget)"
+        compact
+        title-quiet
+        :table-expanded="tableDetailId === widget.id"
+        :show-divider="true"
+        @toggle-detail="toggleTableDetail(widget.id)"
+      />
     </section>
-
-    <div v-if="secondaryCharts.length" class="border-t border-black/[0.06] pt-3">
-      <button
-        type="button"
-        class="flex w-full items-center justify-between gap-2 rounded-lg py-2 text-left text-[12px] font-semibold text-black/50 transition hover:text-black"
-        @click="moreExpanded = !moreExpanded"
-      >
-        <span>More metrics ({{ secondaryCharts.length }})</span>
-        <ChevronDown
-          class="h-4 w-4 shrink-0 transition-transform"
-          :class="moreExpanded ? 'rotate-180' : ''"
-          :stroke-width="2"
-          aria-hidden="true"
-        />
-      </button>
-      <div v-show="moreExpanded" class="mt-2 grid grid-cols-12 gap-3 lg:gap-4">
-        <OverviewWidgetCard
-          v-for="widget in secondaryCharts"
-          :key="widget.id"
-          :widget="widget"
-          :payload="widgetPayload(widget.id)"
-          :grid-class="gridClassFor(widget)"
-          :callout="widgetCallout(widget)"
-          compact
-          title-quiet
-          :table-expanded="tableDetailId === widget.id"
-          @toggle-detail="toggleTableDetail(widget.id)"
-        />
-      </div>
-    </div>
 
     <EmptyState
       v-if="!allWidgets.length"
