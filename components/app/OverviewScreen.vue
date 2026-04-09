@@ -235,18 +235,18 @@ const bulletLine = computed(() => executiveBullets.value.slice(0, 3).join(" · "
           </p>
         </div>
         <div
-          class="grid min-w-0 flex-1 grid-cols-2 gap-3 border-t border-black/[0.06] pt-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-0 lg:border-t-0 lg:pt-0 xl:divide-x xl:divide-black/[0.06]"
+          class="grid min-w-0 flex-1 grid-cols-2 items-start gap-3 border-t border-black/[0.06] pt-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-0 lg:border-t-0 lg:pt-0 xl:divide-x xl:divide-black/[0.06]"
         >
           <div
             v-for="(card, idx) in executiveKpiCards"
             :key="card.widget.id"
-            class="min-w-0 overflow-hidden lg:px-4"
+            class="min-w-0 overflow-hidden lg:px-3 xl:px-4"
             :class="[idx === 0 && 'lg:pl-0', idx === executiveKpiCards.length - 1 && 'lg:pr-0']"
           >
             <p class="sv-section-title">
               {{ card.widget.title }}
             </p>
-            <div class="mt-1.5">
+            <div class="mt-2">
               <OverviewWidgetRenderer :payload="card.payload" compact />
             </div>
           </div>

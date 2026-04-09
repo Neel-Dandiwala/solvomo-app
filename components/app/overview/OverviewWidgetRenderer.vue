@@ -137,57 +137,92 @@ const donutStyle = computed(() => {
 <template>
   <div>
     <template v-if="payload.kind === 'kpi'">
-      <div class="flex min-w-0 items-start justify-between gap-2 overflow-hidden sm:gap-3">
-        <p
-          :class="
-            compact
-              ? 'min-w-0 flex-1 text-[1.5rem] font-semibold tabular-nums tracking-[-0.04em] text-black'
-              : 'sv-kpi-value min-w-0 flex-1 tabular-nums'
-          "
-        >
-          {{ payload.kpi.value }}
-        </p>
-        <div
-          v-if="payload.sparkline?.length"
-          class="h-7 w-[5.5rem] max-w-[42%] shrink-0 overflow-hidden sm:max-w-none sm:w-[5.5rem]"
-          aria-hidden="true"
-        >
-          <svg
-            viewBox="0 0 100 28"
-            class="h-full w-full overflow-hidden text-[#5B7BE1]"
-            preserveAspectRatio="none"
+      <!-- Executive / dense tiles: stack value → sparkline → delta so lines never cross numbers -->
+      <template v-if="compact">
+        <div class="min-w-0 space-y-2">
+          <p class="text-[1.35rem] font-semibold tabular-nums leading-none tracking-[-0.04em] text-black sm:text-[1.5rem]">
+            {{ payload.kpi.value }}
+          </p>
+          <div
+            v-if="payload.sparkline?.length"
+            class="h-5 w-full max-w-[7.5rem] overflow-hidden sm:h-6 sm:max-w-[9rem]"
+            aria-hidden="true"
           >
-            <polyline
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              :points="buildSparkPoints(payload.sparkline)"
-            />
-          </svg>
+            <svg
+              viewBox="0 0 100 28"
+              class="h-full w-full overflow-hidden text-[#5B7BE1]"
+              preserveAspectRatio="none"
+            >
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                :points="buildSparkPoints(payload.sparkline)"
+              />
+            </svg>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 pt-0.5">
+            <p
+              class="inline-flex max-w-full items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold tracking-[-0.01em] sm:px-2.5 sm:text-[12px]"
+              :class="
+                payload.kpi.tone === 'positive'
+                  ? 'border-[rgba(91,123,225,0.14)] bg-[rgba(91,123,225,0.08)] text-[rgba(30,58,138,0.86)]'
+                  : payload.kpi.tone === 'negative'
+                    ? 'border-[rgba(239,68,68,0.12)] bg-[rgba(239,68,68,0.06)] text-[rgba(127,29,29,0.86)]'
+                    : 'border-black/8 bg-black/[0.03] text-black/62'
+              "
+            >
+              {{ payload.kpi.change }}
+            </p>
+          </div>
         </div>
-      </div>
-      <div :class="compact ? 'mt-3 flex flex-wrap items-center justify-between gap-2' : 'mt-5 flex flex-wrap items-center justify-between gap-3'">
-        <p
-          class="inline-flex min-h-[1.75rem] items-center rounded-full border px-2.5 py-0.5 text-[13px] font-semibold tracking-[-0.01em] sm:px-3 sm:py-1 sm:text-[14px]"
-          :class="
-            payload.kpi.tone === 'positive'
-              ? 'border-[rgba(91,123,225,0.14)] bg-[rgba(91,123,225,0.08)] text-[rgba(30,58,138,0.86)]'
-              : payload.kpi.tone === 'negative'
-                ? 'border-[rgba(239,68,68,0.12)] bg-[rgba(239,68,68,0.06)] text-[rgba(127,29,29,0.86)]'
-                : 'border-black/8 bg-black/[0.03] text-black/62'
-          "
-        >
-          {{ payload.kpi.change }}
-        </p>
-        <p
-          v-if="!compact"
-          class="max-w-[12rem] text-right text-[12px] text-black/52 sm:text-[14px]"
-        >
-          {{ payload.kpi.helper }}
-        </p>
-      </div>
+      </template>
+      <template v-else>
+        <div class="flex min-w-0 items-start justify-between gap-2 overflow-hidden sm:gap-3">
+          <p class="sv-kpi-value min-w-0 flex-1 tabular-nums">
+            {{ payload.kpi.value }}
+          </p>
+          <div
+            v-if="payload.sparkline?.length"
+            class="h-7 w-[5.5rem] max-w-[42%] shrink-0 overflow-hidden sm:max-w-none sm:w-[5.5rem]"
+            aria-hidden="true"
+          >
+            <svg
+              viewBox="0 0 100 28"
+              class="h-full w-full overflow-hidden text-[#5B7BE1]"
+              preserveAspectRatio="none"
+            >
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                :points="buildSparkPoints(payload.sparkline)"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <p
+            class="inline-flex min-h-[1.75rem] items-center rounded-full border px-2.5 py-0.5 text-[13px] font-semibold tracking-[-0.01em] sm:px-3 sm:py-1 sm:text-[14px]"
+            :class="
+              payload.kpi.tone === 'positive'
+                ? 'border-[rgba(91,123,225,0.14)] bg-[rgba(91,123,225,0.08)] text-[rgba(30,58,138,0.86)]'
+                : payload.kpi.tone === 'negative'
+                  ? 'border-[rgba(239,68,68,0.12)] bg-[rgba(239,68,68,0.06)] text-[rgba(127,29,29,0.86)]'
+                  : 'border-black/8 bg-black/[0.03] text-black/62'
+            "
+          >
+            {{ payload.kpi.change }}
+          </p>
+          <p class="max-w-[12rem] text-right text-[12px] text-black/52 sm:text-[14px]">
+            {{ payload.kpi.helper }}
+          </p>
+        </div>
+      </template>
     </template>
 
     <template v-else-if="payload.kind === 'chart'">
