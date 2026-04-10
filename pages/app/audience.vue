@@ -2,23 +2,26 @@
 // @ts-nocheck
 import {
   CalendarRange,
-  ChevronDown,
   Download,
   Gauge,
-  Layers3,
   Lightbulb,
   Radar,
-  Sparkles,
   TrendingUp,
 } from "lucide-vue-next";
 import { toValue } from "vue";
-import type { DataTableColumn } from "~/types/app-shell";
-import {
-  audienceSegments,
-  audienceDemographics,
-  audienceGeos,
-  audienceDevices,
-} from "~/composables/useDemoAnalytics";
+import { audienceSegments, audienceDevices } from "~/composables/useDemoAnalytics";
+
+/** Demo cohort for Efficiency by audience type (always shown; bar scale = revenue). */
+const MOCK_EFFICIENCY_BY_AUDIENCE_TYPE = [
+  { label: "High intent", spend: 11600, revenue: 92000 },
+  { label: "Remarketing", spend: 18900, revenue: 111000 },
+  { label: "Lookalike", spend: 13800, revenue: 73000 },
+  { label: "Interests", spend: 11700, revenue: 55000 },
+  { label: "Prospecting broad", spend: 12400, revenue: 54000 },
+  { label: "Account list", spend: 10100, revenue: 28000 },
+  { label: "Engagement", spend: 6500, revenue: 17000 },
+  { label: "Prospecting (other)", spend: 8200, revenue: 14200 },
+] as const;
 
 definePageMeta({ layout: "app" });
 
@@ -35,8 +38,6 @@ const {
   formatCurrency,
   formatPercent,
   formatMultiplier,
-  channelVariant,
-  statusVariant,
 } = useDemoAnalytics();
 
 type AudienceSegment = (typeof audienceSegments)[number];
@@ -53,8 +54,6 @@ const selectedRange = ref("Last 8 weeks");
 const selectedChannel = ref(ALL_SCOPE);
 const selectedRegion = ref(ALL_SCOPE);
 const compareEnabled = ref(true);
-/** Open by default so intelligence bullets are visible (Overview-style, no hidden empty state). */
-const insightPanelOpen = ref(true);
 
 const filteredSegments = computed(() =>
   audienceSegments.filter((segment: AudienceSegment) => {
@@ -139,26 +138,6 @@ const kpis = computed(() => [
   },
 ]);
 
-const demographicBreakdown = computed(() =>
-  [...audienceDemographics].map((item) => ({
-    label: item.label,
-    value: item.revenue,
-    valueLabel: formatCompactCurrency(item.revenue),
-    secondary: `${formatCompactCurrency(item.spend)} spend`,
-    meta: `${formatMultiplier(item.revenue / item.spend, 1)} ROAS`,
-  })),
-);
-
-const geoBreakdown = computed(() =>
-  [...audienceGeos].map((item) => ({
-    label: item.label,
-    value: item.revenue,
-    valueLabel: formatCompactCurrency(item.revenue),
-    secondary: `${formatCompactCurrency(item.spend)} spend`,
-    meta: `${formatMultiplier(item.revenue / item.spend, 1)} ROAS`,
-  })),
-);
-
 const deviceSegments = computed(() =>
   [...audienceDevices].map((device, index) => ({
     label: device.label,
@@ -168,26 +147,17 @@ const deviceSegments = computed(() =>
   })),
 );
 
-const roasByAudienceType = computed(() => {
-  const source =
-    filteredSegments.value.length > 0 ? filteredSegments.value : [...audienceSegments];
-  const map = new Map<string, { spend: number; revenue: number }>();
-  source.forEach((s) => {
-    const cur = map.get(s.type) ?? { spend: 0, revenue: 0 };
-    cur.spend += s.spend;
-    cur.revenue += s.revenue;
-    map.set(s.type, cur);
-  });
-  return Array.from(map.entries())
-    .map(([label, v]) => ({
-      label,
-      value: v.revenue,
-      valueLabel: formatMultiplier(v.spend ? v.revenue / v.spend : 0, 1),
-      secondary: `${formatCompactCurrency(v.spend)} spend`,
+const roasByAudienceType = computed(() =>
+  [...MOCK_EFFICIENCY_BY_AUDIENCE_TYPE]
+    .map((row) => ({
+      label: row.label,
+      value: row.revenue,
+      valueLabel: formatMultiplier(row.spend ? row.revenue / row.spend : 0, 1),
+      secondary: `${formatCompactCurrency(row.spend)} spend`,
       meta: "Blended ROAS",
     }))
-    .sort((a, b) => b.value - a.value);
-});
+    .sort((a, b) => b.value - a.value),
+);
 
 const quickQualityChips = computed(() => [
   { label: "Top converting segment", variant: "success" as const },
@@ -197,40 +167,6 @@ const quickQualityChips = computed(() => [
 ]);
 
 const insightCardIcons = [Lightbulb, TrendingUp, Gauge, Radar];
-
-const segmentRows = computed(() =>
-  [...filteredSegments.value]
-    .sort((left, right) => right.revenue - left.revenue)
-    .map((segment) => ({
-      id: segment.id,
-      name: segment.name,
-      type: segment.type,
-      channel: segment.channel,
-      geo: segment.geo,
-      device: segment.device,
-      spend: formatCompactCurrency(segment.spend),
-      leads: formatCompactNumber(segment.leads),
-      sqls: formatCompactNumber(segment.sqls),
-      cpa: formatCurrency(segment.spend / segment.leads),
-      roas: formatMultiplier(segment.revenue / segment.spend, 1),
-      revenue: formatCompactCurrency(segment.revenue),
-      signal: segment.signal,
-    })),
-);
-
-const columns: DataTableColumn[] = [
-  { key: "name", label: "Segment" },
-  { key: "type", label: "Type" },
-  { key: "channel", label: "Channel" },
-  { key: "geo", label: "Geo" },
-  { key: "device", label: "Device" },
-  { key: "spend", label: "Spend" },
-  { key: "leads", label: "Leads" },
-  { key: "sqls", label: "SQLs" },
-  { key: "cpa", label: "CPA" },
-  { key: "roas", label: "ROAS" },
-  { key: "signal", label: "Signal" },
-];
 </script>
 
 <template>
@@ -352,103 +288,16 @@ const columns: DataTableColumn[] = [
     </SurfaceCard>
 
     <section class="grid grid-cols-12 content-start items-start gap-3 lg:gap-4">
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0 lg:col-span-6">
-        <h3 class="sv-card-title">
-          Demographics
-        </h3>
-        <div class="mt-3 border-t border-black/[0.06] pt-3">
-          <AnalyticsBarsList :items="demographicBreakdown" />
-        </div>
-      </SurfaceCard>
-
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0 lg:col-span-6">
-        <h3 class="sv-card-title">
-          Regional Performance
-        </h3>
-        <div class="mt-3 border-t border-black/[0.06] pt-3">
-          <AnalyticsBarsList :items="geoBreakdown" />
-        </div>
-      </SurfaceCard>
-
       <SurfaceCard variant="frame" padding="sm" class="col-span-12">
-        <button
-          type="button"
-          class="flex w-full items-start gap-3 text-left"
-          @click="insightPanelOpen = !insightPanelOpen"
-        >
-          <Sparkles class="mt-0.5 h-4 w-4 shrink-0 text-black/35" :stroke-width="1.9" aria-hidden="true" />
-          <div class="min-w-0 flex-1">
-            <h3 class="sv-card-title">
-              Audience intelligence
-            </h3>
-            <p class="mt-2 text-[13px] leading-snug text-black/55">
-              Optimization opportunity — expand lookalike SQL seed while tightening remarketing overlap.
-            </p>
-          </div>
-          <ChevronDown
-            class="h-5 w-5 shrink-0 text-black/40 transition duration-200"
-            :class="insightPanelOpen ? 'rotate-180' : ''"
-            :stroke-width="1.9"
-            aria-hidden="true"
-          />
-        </button>
-        <div v-show="insightPanelOpen" class="mt-3 border-t border-black/[0.06] pt-3">
-          <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <li class="rounded-[var(--sv-radius-control)] border border-black/[0.06] bg-black/[0.02] px-4 py-3 text-[13px] leading-relaxed text-black/58">
-              <span class="font-semibold text-black/78">Expansion</span>
-              · SQL lookalike 5% has headroom before frequency climbs.
-            </li>
-            <li class="rounded-[var(--sv-radius-control)] border border-black/[0.06] bg-black/[0.02] px-4 py-3 text-[13px] leading-relaxed text-black/58">
-              <span class="font-semibold text-black/78">Overlap</span>
-              · Trim duplicated reach between Meta prospecting and remarketing.
-            </li>
-            <li class="rounded-[var(--sv-radius-control)] border border-black/[0.06] bg-black/[0.02] px-4 py-3 text-[13px] leading-relaxed text-black/58">
-              <span class="font-semibold text-black/78">Geo</span>
-              · North America still carries the majority of efficient spend.
-            </li>
-          </ul>
+        <h3 class="sv-card-title">
+          Efficiency by audience type
+        </h3>
+        <p class="mt-1 text-[12px] leading-snug text-black/48">
+          Mock cohort — bar length scales with revenue; label shows blended ROAS.
+        </p>
+        <div class="mt-3 border-t border-black/[0.06] pt-3">
+          <AnalyticsBarsList :items="roasByAudienceType" />
         </div>
-      </SurfaceCard>
-
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 overflow-hidden p-0">
-        <div class="border-b border-black/[0.06] px-4 py-3 sm:flex sm:items-center sm:justify-between sm:px-5 sm:py-4">
-          <h3 class="sv-card-title">
-            Audience Segments
-          </h3>
-          <button
-            type="button"
-            class="mt-3 inline-flex min-h-[2.75rem] w-full shrink-0 items-center justify-center gap-2 rounded-[1rem] border border-black/10 bg-white px-4 text-sm font-semibold text-black/64 sm:mt-0 sm:w-auto"
-          >
-            <Layers3 class="h-4 w-4 text-black/55" :stroke-width="1.9" aria-hidden="true" />
-            Columns
-          </button>
-        </div>
-        <DataTable
-          embed
-          :columns="columns"
-          :rows="segmentRows"
-          row-key="id"
-          empty-label="No segments match filters. Choose All channels and All regions to see the full demo cohort."
-        >
-          <template #cell-name="{ row }">
-            <div>
-              <p class="font-semibold text-black">{{ row.name }}</p>
-              <p class="mt-1 text-[12px] text-black/46">{{ row.geo }} · {{ row.device }}</p>
-            </div>
-          </template>
-          <template #cell-type="{ value }">
-            <StatusBadge :label="String(value)" variant="neutral" />
-          </template>
-          <template #cell-channel="{ value }">
-            <StatusBadge :label="String(value)" :variant="channelVariant(String(value))" />
-          </template>
-          <template #cell-roas="{ value }">
-            <StatusBadge :label="String(value)" variant="success" />
-          </template>
-          <template #cell-signal="{ value }">
-            <StatusBadge :label="String(value)" :variant="statusVariant(String(value))" />
-          </template>
-        </DataTable>
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex min-w-0 flex-col gap-5">
@@ -577,7 +426,7 @@ const columns: DataTableColumn[] = [
         </div>
       </SurfaceCard>
 
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex min-w-0 flex-col gap-4 lg:col-span-6">
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12">
         <h3 class="sv-card-title">
           Device split
         </h3>
@@ -601,15 +450,6 @@ const columns: DataTableColumn[] = [
               <span>{{ formatCompactCurrency(device.revenue) }}</span>
             </div>
           </div>
-        </div>
-      </SurfaceCard>
-
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex min-w-0 flex-col gap-4 lg:col-span-6">
-        <h3 class="sv-card-title">
-          Efficiency by audience type
-        </h3>
-        <div class="mt-3 border-t border-black/[0.06] pt-3">
-          <AnalyticsBarsList :items="roasByAudienceType" />
         </div>
       </SurfaceCard>
     </section>

@@ -12,7 +12,13 @@ const props = withDefaults(
     /** When set, that row gets a subtle selected background (e.g. detail panel sync). */
     highlightRowKey?: string | null;
   }>(),
-  { embed: false, highlightRowKey: null },
+  {
+    columns: () => [],
+    rows: () => [],
+    rowKey: "id",
+    embed: false,
+    highlightRowKey: null,
+  },
 );
 
 const emit = defineEmits<{
@@ -28,7 +34,7 @@ function cell(row: Record<string, unknown>, key: string) {
   <div
     class="data-table-wrap overflow-hidden bg-white"
     :class="
-      embed
+      props.embed
         ? 'rounded-b-[1.25rem] border border-t-0 border-black/[0.08]'
         : 'rounded-[1.5rem] border border-black/8'
     "
@@ -38,7 +44,7 @@ function cell(row: Record<string, unknown>, key: string) {
         <thead>
           <tr class="data-table-head-row">
             <th
-              v-for="col in columns"
+              v-for="col in props.columns"
               :key="col.key"
               scope="col"
               class="data-table-th px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-black/52"
@@ -49,24 +55,24 @@ function cell(row: Record<string, unknown>, key: string) {
           </tr>
         </thead>
         <tbody>
-          <tr v-if="!rows.length">
-            <td :colspan="columns.length" class="data-table-empty px-6 py-14 text-center text-[15px] text-black/52">
-              {{ emptyLabel ?? "No rows yet." }}
+          <tr v-if="props.rows.length === 0">
+            <td :colspan="Math.max(props.columns.length, 1)" class="data-table-empty px-6 py-14 text-center text-[15px] text-black/52">
+              {{ props.emptyLabel ?? "No rows yet." }}
             </td>
           </tr>
           <tr
-            v-for="(row, idx) in rows"
-            :key="String(row[rowKey] ?? idx)"
+            v-for="(row, idx) in props.rows"
+            :key="String(row[props.rowKey] ?? idx)"
             class="data-table-row cursor-pointer transition-colors hover:bg-black/[0.02]"
             :class="
-              highlightRowKey != null && String(row[rowKey]) === highlightRowKey
+              props.highlightRowKey != null && String(row[props.rowKey]) === props.highlightRowKey
                 ? 'bg-[rgba(91,123,225,0.06)] hover:bg-[rgba(91,123,225,0.08)]'
                 : ''
             "
             @click="emit('row-click', row)"
           >
             <td
-              v-for="col in columns"
+              v-for="col in props.columns"
               :key="col.key"
               class="data-table-td border-t border-black/6 px-6 py-4 text-black/86"
               :class="col.class"

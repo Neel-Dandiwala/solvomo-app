@@ -43,18 +43,24 @@ function variant(s: ConnectionStatus): "success" | "pending" | "warning" | "neut
 </script>
 
 <template>
-  <div>
+  <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Connections" description="Workspace-owned connectors. Brand profiles inherit access based on policies you define in Settings." hide-context>
+    <PageHeader
+      title="Connections"
+      dense
+      metadata-tight
+      hide-context
+      description="Workspace-owned connectors. Brand profiles inherit access based on policies you define in Settings."
+    >
       <template #actions>
-        <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
+        <button type="button" class="app-button button-secondary min-h-[3rem] px-3 text-sm">
           Add connector
         </button>
       </template>
     </PageHeader>
 
-    <div class="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_repeat(3,minmax(0,12rem))]">
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_repeat(3,minmax(0,12rem)] lg:gap-4">
       <SurfaceCard variant="soft" padding="md">
         <p class="sv-section-title">
           Connector model
@@ -89,7 +95,7 @@ function variant(s: ConnectionStatus): "success" | "pending" | "warning" | "neut
       </SurfaceCard>
     </div>
 
-    <div class="grid gap-5 lg:grid-cols-2">
+    <div class="grid gap-3 lg:grid-cols-2 lg:gap-4">
       <SurfaceCard v-for="c in items" :key="c.id" variant="frame" class="flex flex-col">
         <div class="flex items-start justify-between gap-3">
           <div>

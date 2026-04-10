@@ -1,4 +1,4 @@
-const reportingMeta = {
+export const reportingMeta = {
   label: "Demo analytics",
   lastSynced: "8 minutes ago",
   comparisonLabel: "vs previous 28 days",
@@ -499,13 +499,49 @@ const spendBudgetByWeek = [
 ] as const;
 
 const campaignPacing = [
-  { id: "pace-1", campaign: "Meta Prospecting - Founder Narrative", channel: "Meta Ads", objective: "Demand generation", budget: 27000, actual: 28400, pace: 105, alert: "Overpacing" },
-  { id: "pace-2", campaign: "Meta Retargeting - Site Visitors 30D", channel: "Meta Ads", objective: "Retargeting", budget: 13400, actual: 14200, pace: 106, alert: "Overpacing" },
-  { id: "pace-3", campaign: "Google Brand Search - High Intent", channel: "Google Ads", objective: "Brand capture", budget: 12000, actual: 11600, pace: 97, alert: "On plan" },
-  { id: "pace-4", campaign: "Google Non-Brand Search - Workflow Terms", channel: "Google Ads", objective: "Demand capture", budget: 12800, actual: 12400, pace: 97, alert: "On plan" },
-  { id: "pace-5", campaign: "LinkedIn ABM - RevOps Target Accounts", channel: "LinkedIn", objective: "Pipeline creation", budget: 12400, actual: 10100, pace: 81, alert: "Underpacing" },
-  { id: "pace-6", campaign: "YouTube Retargeting - Customer Proof", channel: "YouTube", objective: "Influence + nurture", budget: 8900, actual: 8300, pace: 93, alert: "Underpacing" },
+  { id: "pace-1", campaign: "Meta Prospecting - Founder Narrative", channel: "Meta Ads", region: "North America", objective: "Demand generation", budget: 27000, actual: 28400, pace: 105, alert: "Overpacing" },
+  { id: "pace-2", campaign: "Meta Retargeting - Site Visitors 30D", channel: "Meta Ads", region: "Global", objective: "Retargeting", budget: 13400, actual: 14200, pace: 106, alert: "Overpacing" },
+  { id: "pace-3", campaign: "Google Brand Search - High Intent", channel: "Google Ads", region: "Global", objective: "Brand capture", budget: 12000, actual: 11600, pace: 97, alert: "On plan" },
+  { id: "pace-4", campaign: "Google Non-Brand Search - Workflow Terms", channel: "Google Ads", region: "North America", objective: "Demand capture", budget: 12800, actual: 12400, pace: 97, alert: "On plan" },
+  { id: "pace-5", campaign: "LinkedIn ABM - RevOps Target Accounts", channel: "LinkedIn", region: "North America + UK", objective: "Pipeline creation", budget: 12400, actual: 10100, pace: 81, alert: "Underpacing" },
+  { id: "pace-6", campaign: "YouTube Retargeting - Customer Proof", channel: "YouTube", region: "Global", objective: "Influence + nurture", budget: 8900, actual: 8300, pace: 93, alert: "Underpacing" },
 ] as const;
+
+/** Demo ledger lines for Spend tab (filterable by channel / region). */
+const spendLedgerTransactions = [
+  { id: "tx-1", date: "2026-04-08", campaign: "Meta Prospecting - Founder Narrative", channel: "Meta Ads", region: "North America", amount: 4200, status: "Settled", goal: "Demand generation" },
+  { id: "tx-2", date: "2026-04-08", campaign: "Meta Retargeting - Site Visitors 30D", channel: "Meta Ads", region: "Global", amount: 2100, status: "Settled", goal: "Retargeting" },
+  { id: "tx-3", date: "2026-04-07", campaign: "Google Brand Search - High Intent", channel: "Google Ads", region: "Global", amount: 1800, status: "Settled", goal: "Brand capture" },
+  { id: "tx-4", date: "2026-04-07", campaign: "Google Non-Brand Search - Workflow Terms", channel: "Google Ads", region: "North America", amount: 2400, status: "Pending", goal: "Demand capture" },
+  { id: "tx-5", date: "2026-04-06", campaign: "LinkedIn ABM - RevOps Target Accounts", channel: "LinkedIn", region: "North America + UK", amount: 1650, status: "Settled", goal: "Pipeline creation" },
+  { id: "tx-6", date: "2026-04-06", campaign: "YouTube Retargeting - Customer Proof", channel: "YouTube", region: "Global", amount: 980, status: "Settled", goal: "Influence + nurture" },
+  { id: "tx-7", date: "2026-04-05", campaign: "Meta Prospecting - Founder Narrative", channel: "Meta Ads", region: "North America", amount: 3950, status: "Settled", goal: "Demand generation" },
+  { id: "tx-8", date: "2026-04-05", campaign: "Meta Retargeting - Site Visitors 30D", channel: "Meta Ads", region: "Global", amount: 2050, status: "Settled", goal: "Retargeting" },
+  { id: "tx-9", date: "2026-04-04", campaign: "Google Brand Search - High Intent", channel: "Google Ads", region: "Global", amount: 1720, status: "Adjusted", goal: "Brand capture" },
+  { id: "tx-10", date: "2026-04-04", campaign: "Google Non-Brand Search - Workflow Terms", channel: "Google Ads", region: "North America", amount: 2280, status: "Settled", goal: "Demand capture" },
+  { id: "tx-11", date: "2026-04-03", campaign: "LinkedIn ABM - RevOps Target Accounts", channel: "LinkedIn", region: "North America + UK", amount: 1580, status: "Pending", goal: "Pipeline creation" },
+  { id: "tx-12", date: "2026-04-03", campaign: "YouTube Retargeting - Customer Proof", channel: "YouTube", region: "Global", amount: 910, status: "Settled", goal: "Influence + nurture" },
+] as const;
+
+/** Spend tab: channel / objective charts when filters exclude all campaigns. */
+export const mockSpendChannelBreakdown = [
+  { label: "Meta Ads", spend: 42600, revenue: 236000 },
+  { label: "Google Ads", spend: 24000, revenue: 146000 },
+  { label: "LinkedIn", spend: 10100, revenue: 28000 },
+  { label: "YouTube", spend: 8300, revenue: 20000 },
+] as const;
+
+export const mockSpendObjectiveBreakdown = [
+  { label: "Demand generation", spend: 28400, revenue: 132000 },
+  { label: "Retargeting", spend: 14200, revenue: 104000 },
+  { label: "Brand capture", spend: 11600, revenue: 92000 },
+  { label: "Demand capture", spend: 12400, revenue: 54000 },
+  { label: "Pipeline creation", spend: 10100, revenue: 28000 },
+  { label: "Influence + nurture", spend: 8300, revenue: 20000 },
+] as const;
+
+/** Direct imports for Spend page charts/tables (stable SSR + client; avoids composable unwrap quirks). */
+export { spendBudgetByWeek, campaignPacing, spendLedgerTransactions };
 
 const signalQuality = [
   {
@@ -810,6 +846,7 @@ export function useDemoAnalytics() {
     audienceDevices,
     spendBudgetByWeek,
     campaignPacing,
+    spendLedgerTransactions,
     signalQuality,
     totals,
     performanceChannels,

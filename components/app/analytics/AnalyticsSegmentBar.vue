@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // @ts-nocheck
+import { computed } from "vue";
 
 const props = defineProps<{
   segments: Array<{
@@ -10,7 +11,12 @@ const props = defineProps<{
   }>;
 }>();
 
-const total = computed(() => props.segments.reduce((sum, segment) => sum + segment.value, 0));
+const segmentList = computed(() => props.segments ?? []);
+
+/** Plain number for template math (avoid ref edge cases in :style bindings). */
+const segmentTotal = computed(() =>
+  segmentList.value.reduce((sum, segment) => sum + segment.value, 0),
+);
 
 function toneClass(tone?: string) {
   switch (tone) {
@@ -30,16 +36,17 @@ function toneClass(tone?: string) {
   <div class="space-y-4">
     <div class="flex h-4 overflow-hidden rounded-full bg-black/[0.05]">
       <div
-        v-for="segment in segments"
+        v-for="segment in segmentList"
         :key="segment.label"
+        class="min-h-[1rem] flex-shrink-0"
         :class="toneClass(segment.tone)"
-        :style="{ width: `${(segment.value / Math.max(total, 1)) * 100}%` }"
+        :style="{ width: `${(segment.value / Math.max(segmentTotal, 1)) * 100}%` }"
       />
     </div>
 
     <div class="grid gap-3 sm:grid-cols-2">
       <div
-        v-for="segment in segments"
+        v-for="segment in segmentList"
         :key="`${segment.label}-legend`"
         class="sv-card-inset flex items-center justify-between gap-3 rounded-[1rem] px-4 py-3"
       >
@@ -49,10 +56,10 @@ function toneClass(tone?: string) {
         </div>
         <div class="text-right">
           <div class="text-[14px] font-semibold text-black">
-            {{ segment.valueLabel ?? `${Math.round((segment.value / Math.max(total, 1)) * 100)}%` }}
+            {{ segment.valueLabel ?? `${Math.round((segment.value / Math.max(segmentTotal, 1)) * 100)}%` }}
           </div>
           <div class="text-[12px] text-black/46">
-            {{ Math.round((segment.value / Math.max(total, 1)) * 100) }}%
+            {{ Math.round((segment.value / Math.max(segmentTotal, 1)) * 100) }}%
           </div>
         </div>
       </div>

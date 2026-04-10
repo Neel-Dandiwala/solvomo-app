@@ -26,8 +26,6 @@ definePageMeta({ layout: "app" });
 
 useHead({ title: "Creatives — Solvomo" });
 
-const { dataStatus } = useAppData();
-
 const demoAnalytics = useDemoAnalytics();
 const {
   reportingMeta,
@@ -339,15 +337,10 @@ const columns: DataTableColumn[] = [
   { key: "status", label: "Status" },
 ];
 
-const sectionIconClass =
-  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.02] text-black/62";
-
 </script>
 
 <template>
   <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
-    <MockDataState :status="dataStatus" />
-
     <PageHeader title="Creatives" dense metadata-tight hide-context />
 
     <FilterBar compact>
@@ -496,7 +489,7 @@ const sectionIconClass =
       <!-- Variation families (hero content) -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
         <div class="mb-4 flex items-center gap-3">
-          <div :class="sectionIconClass">
+          <div class="sv-section-icon-wrap">
             <Sparkles class="h-5 w-5" :stroke-width="1.9" />
           </div>
           <h3 class="sv-card-title">Variation families</h3>
@@ -552,7 +545,7 @@ const sectionIconClass =
       <!-- Top creatives + variation / watch -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-7">
         <div class="mb-4 flex items-center gap-3">
-          <div :class="sectionIconClass">
+          <div class="sv-section-icon-wrap">
             <Palette class="h-5 w-5" :stroke-width="1.9" />
           </div>
           <h3 class="sv-card-title">Top creatives</h3>
@@ -622,7 +615,7 @@ const sectionIconClass =
       <div class="col-span-12 flex min-h-0 flex-col gap-4 lg:col-span-5">
         <SurfaceCard v-if="bestVariation && worstWatch" variant="frame" padding="sm" class="min-w-0">
           <div class="mb-3 flex items-center gap-3">
-            <div :class="sectionIconClass">
+            <div class="sv-section-icon-wrap">
               <Layers3 class="h-5 w-5" :stroke-width="1.9" />
             </div>
             <h3 class="sv-card-title">Variation check</h3>
@@ -671,7 +664,7 @@ const sectionIconClass =
 
         <SurfaceCard variant="frame" padding="sm" class="min-w-0">
           <div class="mb-3 flex items-center gap-3">
-            <div :class="sectionIconClass">
+            <div class="sv-section-icon-wrap">
               <Sparkles class="h-5 w-5" :stroke-width="1.9" />
             </div>
             <h3 class="sv-card-title">Signals</h3>
@@ -693,7 +686,7 @@ const sectionIconClass =
       <!-- Trend — icon + title only (KPI row above; no repeated metric strip) -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex h-fit min-h-0 min-w-0 w-full flex-col gap-4">
         <div class="flex min-w-0 items-center gap-3">
-          <div :class="sectionIconClass">
+          <div class="sv-section-icon-wrap">
             <TrendingUp class="h-5 w-5" :stroke-width="1.9" />
           </div>
           <h3 class="sv-card-title">Creative performance trend</h3>
@@ -710,7 +703,7 @@ const sectionIconClass =
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 min-w-0">
         <div class="mb-4 flex items-center gap-3">
-          <div :class="sectionIconClass">
+          <div class="sv-section-icon-wrap">
             <TimerReset class="h-5 w-5" :stroke-width="1.9" />
           </div>
           <h3 class="sv-card-title">Fatigue &amp; health</h3>
@@ -722,7 +715,7 @@ const sectionIconClass =
             class="flex items-center justify-between gap-3 rounded-[1rem] border border-black/[0.06] bg-black/[0.02] px-3.5 py-3"
           >
             <div class="flex min-w-0 items-center gap-3">
-              <div :class="sectionIconClass">
+              <div class="sv-section-icon-wrap">
                 <component :is="card.icon" class="h-5 w-5" :stroke-width="1.9" />
               </div>
               <div class="min-w-0">

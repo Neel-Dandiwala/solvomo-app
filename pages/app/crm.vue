@@ -4,7 +4,6 @@ import {
   CalendarRange,
   Download,
   Funnel,
-  GitCompareArrows,
   Layers3,
   Link2,
   ShieldCheck,
@@ -19,6 +18,7 @@ definePageMeta({ layout: "app" });
 
 useHead({ title: "CRM / Outcomes — Solvomo" });
 
+const { dataStatus } = useAppData();
 const {
   reportingMeta,
   totals,
@@ -88,8 +88,8 @@ const sourceRows = computed(() =>
 );
 
 const sourceSegments = computed(() => [
-  { label: "Sourced revenue", value: sourcedRevenue.value, valueLabel: formatCompactCurrency(sourcedRevenue.value), tone: "depth" },
-  { label: "Influenced revenue", value: influencedRevenue.value, valueLabel: formatCompactCurrency(influencedRevenue.value), tone: "brand" },
+  { label: "Sourced revenue", value: sourcedRevenue.value, valueLabel: formatCompactCurrency(sourcedRevenue.value), tone: "neutral" as const },
+  { label: "Influenced revenue", value: influencedRevenue.value, valueLabel: formatCompactCurrency(influencedRevenue.value), tone: "neutral" as const },
 ]);
 
 const campaignRows = computed(() =>
@@ -118,54 +118,71 @@ const columns: DataTableColumn[] = [
   { key: "revenue", label: "Revenue" },
   { key: "payback", label: "Payback" },
 ];
+
+function kpiColClass() {
+  return "col-span-12 sm:col-span-6 xl:col-span-4";
+}
 </script>
 
 <template>
-  <div class="space-y-8">
-    <PageHeader title="Outcomes" hide-context>
-      <template #actions>
-        <button type="button" class="app-button button-secondary text-sm">
-          <GitCompareArrows class="h-4 w-4" :stroke-width="1.9" />
-          Compare
-        </button>
-        <button type="button" class="app-button button-secondary text-sm">
-          <Download class="h-4 w-4" :stroke-width="1.9" />
+  <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
+    <MockDataState :status="dataStatus" />
+
+    <PageHeader title="Outcomes" dense metadata-tight hide-context />
+
+    <FilterBar compact>
+      <div class="flex min-w-0 flex-col gap-1.5">
+        <span class="sv-section-title">Period</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            v-for="option in ['Last 8 weeks', 'Last 30 days', 'Quarter to date']"
+            :key="option"
+            type="button"
+            class="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition"
+            :class="selectedRange === option ? 'border-black bg-black text-white' : 'border-black/10 bg-white text-black/60'"
+            @click="selectedRange = option"
+          >
+            <CalendarRange class="h-4 w-4 shrink-0 text-black/55" :stroke-width="1.9" />
+            {{ option }}
+          </button>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="crm-attribution" class="sv-section-title">Attribution</label>
+        <select id="crm-attribution" v-model="selectedAttribution" class="app-control min-w-[12rem]">
+          <option>Hybrid multi-touch</option>
+          <option>Last non-direct</option>
+          <option>First touch</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="crm-source" class="sv-section-title">Source</label>
+        <select id="crm-source" v-model="selectedSource" class="app-control min-w-[12rem]">
+          <option v-for="option in outcomeSources" :key="option" :value="option">
+            {{ option }}
+          </option>
+        </select>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="inline-flex min-h-[3rem] shrink-0 items-center gap-2 rounded-[var(--sv-radius-control)] border border-[var(--sv-line)] bg-white px-3.5 text-sm font-semibold text-black/85 shadow-[0_10px_24px_-26px_rgba(15,23,42,0.18)] transition hover:border-black/18 hover:bg-black/[0.02]"
+        >
+          <Download class="h-4 w-4 text-black/55" :stroke-width="1.9" aria-hidden="true" />
           Export
         </button>
-      </template>
-      <AnalyticsMetadataStrip :items="metadataItems" />
-    </PageHeader>
-
-    <FilterBar>
-      <div class="flex flex-wrap gap-2">
-        <button
-          v-for="option in ['Last 8 weeks', 'Last 30 days', 'Quarter to date']"
-          :key="option"
-          type="button"
-          class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition"
-          :class="selectedRange === option ? 'border-black bg-black text-white' : 'border-black/10 bg-white text-black/60'"
-          @click="selectedRange = option"
-        >
-          <CalendarRange class="h-4 w-4" :stroke-width="1.9" />
-          {{ option }}
-        </button>
       </div>
-      <select v-model="selectedAttribution" class="app-control min-w-[12rem]">
-        <option>Hybrid multi-touch</option>
-        <option>Last non-direct</option>
-        <option>First touch</option>
-      </select>
-      <select v-model="selectedSource" class="app-control min-w-[11rem]">
-        <option v-for="option in outcomeSources" :key="option" :value="option">
-          {{ option }}
-        </option>
-      </select>
     </FilterBar>
 
-    <section class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+    <SurfaceCard variant="soft" padding="sm" class="border border-black/[0.05]">
+      <AnalyticsMetadataStrip :items="metadataItems" />
+    </SurfaceCard>
+
+    <section class="grid grid-cols-12 content-start items-start gap-3 lg:gap-4">
       <AnalyticsMetricCard
         v-for="item in kpis"
         :key="item.title"
+        :class="kpiColClass()"
         :title="item.title"
         :value="item.value"
         :delta="item.delta"
@@ -173,145 +190,164 @@ const columns: DataTableColumn[] = [
         :tone="item.tone"
         :icon="item.icon"
         :trend="item.trend"
+        dense
       />
-    </section>
 
-    <section class="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-      <SurfaceCard variant="frame" padding="md" class="space-y-5">
-        <div class="flex items-center gap-3">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.03] text-black/62">
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 lg:col-span-6">
+        <div class="flex items-start gap-3">
+          <div class="sv-section-icon-wrap">
             <Funnel class="h-5 w-5" :stroke-width="1.9" />
           </div>
-          <div>
+          <div class="min-w-0 pt-0.5">
             <p class="sv-section-title">Funnel</p>
-            <h2 class="sv-section-heading mt-1">Acquisition to customer</h2>
+            <h3 class="sv-card-title">
+              Acquisition to Customer
+            </h3>
           </div>
         </div>
-        <AnalyticsFunnel :items="funnelItems" />
+        <div class="mt-3 border-t border-black/[0.06] pt-3">
+          <AnalyticsFunnel :items="funnelItems" />
+        </div>
       </SurfaceCard>
 
-      <SurfaceCard variant="soft" padding="lg" class="space-y-5">
-        <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/8 bg-white/80 text-black/62">
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 lg:col-span-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div class="flex items-start gap-3">
+            <div class="sv-section-icon-wrap">
               <TrendingUp class="h-5 w-5" :stroke-width="1.9" />
             </div>
-            <div>
+            <div class="min-w-0 pt-0.5">
               <p class="sv-section-title">Trend</p>
-              <h2 class="sv-section-heading mt-1">Pipeline vs revenue</h2>
+              <h3 class="sv-card-title">
+                Pipeline vs Revenue
+              </h3>
             </div>
           </div>
           <StatusBadge label="High confidence" variant="success" />
         </div>
-        <AnalyticsLineChart
-          :labels="performanceTrend.map((point) => point.label)"
-          :series="[
-            { label: 'Pipeline', values: performanceTrend.map((point) => point.pipeline), color: 'depth' },
-            { label: 'Revenue', values: performanceTrend.map((point) => point.revenue), color: 'product' },
-          ]"
-          :value-formatter="formatCompactCurrency"
-          variant="area"
-        />
-      </SurfaceCard>
-    </section>
-
-    <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <SurfaceCard variant="product" padding="md" class="space-y-5">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.03] text-black/62">
-            <Link2 class="h-4.5 w-4.5" :stroke-width="1.9" />
-          </div>
-          <div>
-            <p class="sv-section-title">Attribution split</p>
-            <h2 class="sv-section-heading mt-1">Sourced vs influenced</h2>
-          </div>
+        <div class="mt-3 border-t border-black/[0.06] pt-3">
+          <AnalyticsLineChart
+            :labels="performanceTrend.map((point) => point.label)"
+            :series="[
+              { label: 'Pipeline', values: performanceTrend.map((point) => point.pipeline), color: 'depth' },
+              { label: 'Revenue', values: performanceTrend.map((point) => point.revenue), color: 'product' },
+            ]"
+            :value-formatter="formatCompactCurrency"
+            variant="area"
+          />
         </div>
-        <AnalyticsSegmentBar :segments="sourceSegments" />
-        <div class="grid gap-3 sm:grid-cols-2">
-          <div class="sv-card-inset rounded-[1rem] px-4 py-4">
-            <div class="flex items-center justify-between gap-3">
-              <StatusBadge label="Sourced" variant="success" />
-              <p class="text-[15px] font-semibold text-black">{{ formatCompactCurrency(sourcedRevenue) }}</p>
-            </div>
-            <p class="mt-2 text-[13px] text-black/52">{{ formatPercent((sourcedRevenue / totals.revenue) * 100, 0) }} of closed revenue</p>
-          </div>
-          <div class="sv-card-inset rounded-[1rem] px-4 py-4">
-            <div class="flex items-center justify-between gap-3">
-              <StatusBadge label="Influenced" variant="info" />
-              <p class="text-[15px] font-semibold text-black">{{ formatCompactCurrency(influencedRevenue) }}</p>
-            </div>
-            <p class="mt-2 text-[13px] text-black/52">{{ formatPercent((influencedRevenue / totals.revenue) * 100, 0) }} of closed revenue</p>
-          </div>
-        </div>
-        <AnalyticsBarsList :items="sourceRows" />
       </SurfaceCard>
 
-      <SurfaceCard variant="depth" padding="md" class="space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.03] text-black/62">
-            <ShieldCheck class="h-4.5 w-4.5" :stroke-width="1.9" />
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 xl:col-span-6">
+        <div class="flex items-start gap-3">
+          <div class="sv-section-icon-wrap">
+            <Link2 class="h-5 w-5" :stroke-width="1.9" />
           </div>
-          <div>
+          <div class="min-w-0 pt-0.5">
+            <p class="sv-section-title">Attribution</p>
+            <h3 class="sv-card-title">
+              Sourced vs Influenced
+            </h3>
+          </div>
+        </div>
+        <div class="mt-3 space-y-4 border-t border-black/[0.06] pt-3">
+          <AnalyticsSegmentBar :segments="sourceSegments" />
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="sv-card-inset rounded-[1rem] px-4 py-4">
+              <div class="flex items-center justify-between gap-3">
+                <StatusBadge label="Sourced" variant="success" />
+                <p class="text-[15px] font-semibold text-black">{{ formatCompactCurrency(sourcedRevenue) }}</p>
+              </div>
+              <p class="mt-2 text-[13px] text-black/52">{{ formatPercent((sourcedRevenue / totals.revenue) * 100, 0) }} of closed revenue</p>
+            </div>
+            <div class="sv-card-inset rounded-[1rem] px-4 py-4">
+              <div class="flex items-center justify-between gap-3">
+                <StatusBadge label="Influenced" variant="info" />
+                <p class="text-[15px] font-semibold text-black">{{ formatCompactCurrency(influencedRevenue) }}</p>
+              </div>
+              <p class="mt-2 text-[13px] text-black/52">{{ formatPercent((influencedRevenue / totals.revenue) * 100, 0) }} of closed revenue</p>
+            </div>
+          </div>
+          <AnalyticsBarsList :items="sourceRows" />
+        </div>
+      </SurfaceCard>
+
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 xl:col-span-6">
+        <div class="flex items-start gap-3">
+          <div class="sv-section-icon-wrap">
+            <ShieldCheck class="h-5 w-5" :stroke-width="1.9" />
+          </div>
+          <div class="min-w-0 pt-0.5">
             <p class="sv-section-title">Signal quality</p>
-            <h2 class="sv-section-heading mt-1">Confidence cards</h2>
+            <h3 class="sv-card-title">
+              Confidence Cards
+            </h3>
           </div>
         </div>
-        <div class="grid gap-3 lg:grid-cols-2">
-          <div
-            v-for="item in signalQuality"
-            :key="item.id"
-            class="sv-card-inset rounded-[1rem] px-4 py-4"
-          >
-            <p class="sv-section-title">{{ item.label }}</p>
-            <p class="mt-2 text-[1rem] font-semibold text-black">{{ item.value }}</p>
-            <p class="mt-2 text-[13px] leading-6 text-black/52">{{ item.note }}</p>
+        <div class="mt-3 space-y-4 border-t border-black/[0.06] pt-3">
+          <div class="grid gap-3 lg:grid-cols-2">
+            <div
+              v-for="item in signalQuality"
+              :key="item.id"
+              class="sv-card-inset rounded-[1rem] px-4 py-4"
+            >
+              <p class="sv-section-title">{{ item.label }}</p>
+              <p class="mt-2 text-[1rem] font-semibold text-black">{{ item.value }}</p>
+              <p class="mt-2 text-[13px] leading-6 text-black/52">{{ item.note }}</p>
+            </div>
           </div>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-3">
-          <div class="sv-card-inset rounded-[1rem] px-4 py-4">
-            <p class="sv-section-title">CAC</p>
-            <p class="mt-2 text-[15px] font-semibold text-black">{{ formatCurrency(totals.cac) }}</p>
-          </div>
-          <div class="sv-card-inset rounded-[1rem] px-4 py-4">
-            <p class="sv-section-title">MER</p>
-            <p class="mt-2 text-[15px] font-semibold text-black">{{ formatMultiplier(totals.mer, 1) }}</p>
-          </div>
-          <div class="sv-card-inset rounded-[1rem] px-4 py-4">
-            <p class="sv-section-title">Payback</p>
-            <p class="mt-2 text-[15px] font-semibold text-black">{{ paybackMonths.toFixed(1) }} mo</p>
+          <div class="grid gap-3 sm:grid-cols-3">
+            <div class="sv-card-inset rounded-[1rem] px-4 py-4">
+              <p class="sv-section-title">CAC</p>
+              <p class="mt-2 text-[15px] font-semibold text-black">{{ formatCurrency(totals.cac) }}</p>
+            </div>
+            <div class="sv-card-inset rounded-[1rem] px-4 py-4">
+              <p class="sv-section-title">MER</p>
+              <p class="mt-2 text-[15px] font-semibold text-black">{{ formatMultiplier(totals.mer, 1) }}</p>
+            </div>
+            <div class="sv-card-inset rounded-[1rem] px-4 py-4">
+              <p class="sv-section-title">Payback</p>
+              <p class="mt-2 text-[15px] font-semibold text-black">{{ paybackMonths.toFixed(1) }} mo</p>
+            </div>
           </div>
         </div>
       </SurfaceCard>
-    </section>
 
-    <section class="space-y-4">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.03] text-black/62">
-            <Layers3 class="h-4.5 w-4.5" :stroke-width="1.9" />
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div class="flex items-start gap-3">
+            <div class="sv-section-icon-wrap">
+              <Layers3 class="h-5 w-5" :stroke-width="1.9" />
+            </div>
+            <div class="min-w-0 pt-0.5">
+              <p class="sv-section-title">Campaign mapping</p>
+              <h3 class="sv-card-title">
+                Source to Outcome
+              </h3>
+            </div>
           </div>
-          <div>
-            <p class="sv-section-title">Campaign mapping</p>
-            <h2 class="sv-section-heading mt-1">Source to outcome table</h2>
-          </div>
+          <button
+            type="button"
+            class="inline-flex min-h-[3rem] shrink-0 items-center gap-2 rounded-[var(--sv-radius-control)] border border-[var(--sv-line)] bg-white px-3.5 text-sm font-semibold text-black/85 shadow-[0_10px_24px_-26px_rgba(15,23,42,0.18)] transition hover:border-black/18 hover:bg-black/[0.02]"
+          >
+            <Layers3 class="h-4 w-4 text-black/55" :stroke-width="1.9" aria-hidden="true" />
+            Columns
+          </button>
         </div>
-        <button type="button" class="inline-flex min-h-[2.75rem] items-center gap-2 rounded-[1rem] border border-black/10 bg-white px-4 text-sm font-semibold text-black/64">
-          <Layers3 class="h-4 w-4" :stroke-width="1.9" />
-          Columns
-        </button>
-      </div>
-
-      <DataTable :columns="columns" :rows="campaignRows" row-key="id">
-        <template #cell-campaign="{ row }">
-          <div>
-            <p class="font-semibold text-black">{{ row.campaign }}</p>
-            <p class="mt-1 text-[12px] text-black/46">{{ row.payback }} payback</p>
-          </div>
-        </template>
-        <template #cell-source="{ value }">
-          <StatusBadge :label="String(value)" :variant="channelVariant(String(value))" />
-        </template>
-      </DataTable>
+        <div class="mt-3 border-t border-black/[0.06] pt-3">
+          <DataTable :columns="columns" :rows="campaignRows" row-key="id">
+            <template #cell-campaign="{ row }">
+              <div>
+                <p class="font-semibold text-black">{{ row.campaign }}</p>
+                <p class="mt-1 text-[12px] text-black/46">{{ row.payback }} payback</p>
+              </div>
+            </template>
+            <template #cell-source="{ value }">
+              <StatusBadge :label="String(value)" :variant="channelVariant(String(value))" />
+            </template>
+          </DataTable>
+        </div>
+      </SurfaceCard>
     </section>
   </div>
 </template>

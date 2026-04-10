@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // @ts-nocheck
+import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -19,6 +20,11 @@ const barItems = computed(() => (Array.isArray(props.items) ? props.items : []))
 const maxValue = computed(() =>
   Math.max(1, ...barItems.value.map((item: { value: number }) => item.value)),
 );
+
+function barFillWidth(value: number) {
+  const max = maxValue.value;
+  return { width: `${Math.max(10, (value / max) * 100)}%` };
+}
 </script>
 
 <template>
@@ -45,7 +51,7 @@ const maxValue = computed(() =>
       <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-black/[0.05]">
         <div
           class="h-full rounded-full bg-[linear-gradient(90deg,rgba(95,199,212,0.96),rgba(91,123,225,0.92))]"
-          :style="{ width: `${Math.max(10, (item.value / maxValue) * 100)}%` }"
+          :style="barFillWidth(item.value)"
         />
       </div>
     </div>

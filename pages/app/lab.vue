@@ -58,30 +58,36 @@ function nextDeployStage() {
 </script>
 
 <template>
-  <div>
+  <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader title="Lab" description="Simulation workspace for Versions — draft, compare, and stage deploy to production integrations." hide-context>
+    <PageHeader
+      title="Lab"
+      dense
+      metadata-tight
+      hide-context
+      description="Simulation workspace for Versions — draft, compare, and stage deploy to production integrations."
+    >
       <template #actions>
-        <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
+        <button type="button" class="app-button button-secondary min-h-[3rem] px-3 text-sm">
           Save Version
         </button>
-        <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
+        <button type="button" class="app-button button-secondary min-h-[3rem] px-3 text-sm">
           Compare
         </button>
-        <button type="button" class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white" @click="openDeploy">
+        <button type="button" class="app-button button-primary min-h-[3rem] px-3 text-sm text-white" @click="openDeploy">
           Preview Deploy
         </button>
       </template>
     </PageHeader>
 
-    <div class="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)_18rem]">
+    <div class="grid gap-3 xl:grid-cols-[16rem_minmax(0,1fr)_18rem] lg:gap-4">
       <SurfaceCard variant="soft" class="h-fit xl:sticky xl:top-4" padding="sm">
-        <h2 class="text-xs font-bold uppercase tracking-wide text-black/45">
+        <p class="sv-section-title">
           Controls
-        </h2>
-        <label class="mt-4 block text-xs font-semibold text-black/50">Campaign flow</label>
-        <select v-model="flowStep" class="auth-input mt-2 py-2 text-sm">
+        </p>
+        <label class="mt-4 block sv-section-title">Campaign flow</label>
+        <select v-model="flowStep" class="app-control mt-2 min-w-0">
           <option value="awareness">
             Awareness
           </option>
@@ -92,20 +98,20 @@ function nextDeployStage() {
             Conversion
           </option>
         </select>
-        <label class="mt-4 block text-xs font-semibold text-black/50">Audience cell</label>
-        <input v-model="audience" class="auth-input mt-2 py-2 text-sm" type="text">
-        <label class="mt-4 block text-xs font-semibold text-black/50">Creative mix</label>
-        <textarea v-model="creativeMix" class="auth-input mt-2 min-h-[5rem] resize-y text-sm" />
+        <label class="mt-4 block sv-section-title">Audience cell</label>
+        <input v-model="audience" class="app-control mt-2 min-w-0" type="text">
+        <label class="mt-4 block sv-section-title">Creative mix</label>
+        <textarea v-model="creativeMix" class="app-control mt-2 min-h-[5rem] min-w-0 resize-y" />
         <p class="mt-4 text-xs text-black/45">
           Lab changes are scoped to the selected brand profile and environment.
         </p>
       </SurfaceCard>
 
-      <SurfaceCard variant="frame" padding="lg">
-        <h2 class="text-base font-semibold">
+      <SurfaceCard variant="frame" padding="sm">
+        <h2 class="sv-card-title">
           Flow canvas
         </h2>
-        <p class="mt-1 text-sm text-black/50">
+        <p class="mt-1 text-[13px] leading-snug text-black/48">
           Campaign stages chain to modeled outcomes. Connectors unlock quantitative links; structure is always visible.
         </p>
         <div class="mt-8 flex flex-col items-stretch gap-4 md:flex-row md:items-center md:justify-between">
@@ -131,10 +137,10 @@ function nextDeployStage() {
         />
       </SurfaceCard>
 
-      <SurfaceCard variant="product" class="h-fit xl:sticky xl:top-4" padding="sm">
-        <h2 class="text-xs font-bold uppercase tracking-wide text-black/45">
+      <SurfaceCard variant="frame" class="h-fit xl:sticky xl:top-4" padding="sm">
+        <p class="sv-section-title">
           Metrics preview
-        </h2>
+        </p>
         <dl class="mt-4 space-y-4 text-sm">
           <div>
             <dt class="text-black/45">
@@ -164,14 +170,19 @@ function nextDeployStage() {
       </SurfaceCard>
     </div>
 
-    <section class="mt-10">
-      <h2 class="text-lg font-semibold">
-        Versions
-      </h2>
-      <p class="mt-1 text-sm text-black/50">
-        Each row is an immutable snapshot you can promote through staging.
-      </p>
-      <DataTable class="mt-4" :columns="versionColumns" :rows="versionRowsForTable" row-key="id">
+    <section class="mt-2 space-y-3">
+      <div>
+        <p class="sv-section-title">
+          Table
+        </p>
+        <h2 class="sv-card-title mt-1">
+          Versions
+        </h2>
+        <p class="mt-1 text-[13px] leading-snug text-black/48">
+          Each row is an immutable snapshot you can promote through staging.
+        </p>
+      </div>
+      <DataTable :columns="versionColumns" :rows="versionRowsForTable" row-key="id">
         <template #cell-status="{ value }">
           <StatusBadge :variant="statusVariant(slotStatus(value))" :label="statusLabel(slotStatus(value))" />
         </template>
@@ -188,10 +199,10 @@ function nextDeployStage() {
         @click.self="deployOpen = false"
       >
         <SurfaceCard variant="frame" class="max-h-[90vh] w-full max-w-lg overflow-y-auto" padding="lg" @click.stop>
-          <h2 id="deploy-title" class="text-lg font-semibold">
+          <h2 id="deploy-title" class="sv-card-title">
             Deploy Version
           </h2>
-          <p class="mt-2 text-sm text-black/50">
+          <p class="mt-2 text-[13px] leading-snug text-black/48">
             Controlled publish to a live integration. Playground stays isolated until you confirm.
           </p>
           <ol class="mt-6 space-y-4 text-sm">

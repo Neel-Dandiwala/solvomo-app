@@ -54,45 +54,54 @@ function severityLabel(s: AlertSeverity) {
 </script>
 
 <template>
-  <div class="alerts-page">
+  <div class="alerts-page max-w-full space-y-5 overflow-x-hidden pb-2">
     <MockDataState :status="dataStatus" />
 
-    <PageHeader hide-context
+    <PageHeader
       title="Alerts"
-      description="Operational signals for this brand profile — what to look at next. Delivery health, connector posture, and spend guardrails. No noise, no webhook jargon."
+      dense
+      metadata-tight
+      hide-context
+      description="Operational signals for this brand profile — what to look at next. Delivery health, connector posture, and spend guardrails."
     />
 
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]">
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:gap-4">
       <div>
-        <FilterBar>
-          <select v-model="severityFilter" class="auth-input max-w-[10rem] py-2 text-sm">
-            <option value="all">
-              All severities
-            </option>
-            <option value="critical">
-              Critical
-            </option>
-            <option value="warning">
-              Warning
-            </option>
-            <option value="info">
-              Info
-            </option>
-          </select>
-          <select v-model="statusFilter" class="auth-input max-w-[11rem] py-2 text-sm">
-            <option value="all">
-              All statuses
-            </option>
-            <option value="open">
-              Open
-            </option>
-            <option value="acknowledged">
-              Acknowledged
-            </option>
-            <option value="resolved">
-              Resolved
-            </option>
-          </select>
+        <FilterBar compact>
+          <div class="flex flex-col gap-1.5">
+            <label for="alerts-severity" class="sv-section-title">Severity</label>
+            <select id="alerts-severity" v-model="severityFilter" class="app-control min-w-[10rem]">
+              <option value="all">
+                All severities
+              </option>
+              <option value="critical">
+                Critical
+              </option>
+              <option value="warning">
+                Warning
+              </option>
+              <option value="info">
+                Info
+              </option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="alerts-status" class="sv-section-title">Status</label>
+            <select id="alerts-status" v-model="statusFilter" class="app-control min-w-[11rem]">
+              <option value="all">
+                All statuses
+              </option>
+              <option value="open">
+                Open
+              </option>
+              <option value="acknowledged">
+                Acknowledged
+              </option>
+              <option value="resolved">
+                Resolved
+              </option>
+            </select>
+          </div>
         </FilterBar>
 
         <ul class="space-y-2">
@@ -139,7 +148,7 @@ function severityLabel(s: AlertSeverity) {
               <StatusBadge :variant="severityBadgeVariant(selected.severity)" :label="severityLabel(selected.severity)" />
               <StatusBadge variant="neutral" :label="statusLabel(selected.status)" />
             </div>
-            <h2 class="mt-4 text-lg font-semibold">
+            <h2 class="sv-card-title mt-4">
               {{ selected.title }}
             </h2>
             <p class="mt-1 text-xs text-black/45">
@@ -152,10 +161,10 @@ function severityLabel(s: AlertSeverity) {
               Recommended actions will appear here once playbooks are connected for your workspace.
             </p>
             <div class="mt-6 flex flex-wrap gap-2">
-              <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
+              <button type="button" class="app-button button-secondary min-h-[2.75rem] px-3 text-sm">
                 Acknowledge
               </button>
-              <button type="button" class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white">
+              <button type="button" class="app-button button-primary min-h-[2.75rem] px-3 text-sm text-white">
                 Mark resolved
               </button>
             </div>
@@ -174,7 +183,7 @@ function severityLabel(s: AlertSeverity) {
     >
       <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-black/10" />
       <StatusBadge :variant="severityBadgeVariant(selected.severity)" :label="severityLabel(selected.severity)" />
-      <h2 class="mt-3 text-lg font-semibold">
+      <h2 class="sv-card-title mt-3">
         {{ selected.title }}
       </h2>
       <p class="mt-3 text-sm text-black/60">

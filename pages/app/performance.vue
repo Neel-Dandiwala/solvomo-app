@@ -262,10 +262,6 @@ const campaignRows = computed(() =>
     })),
 );
 
-/** Shared section icon shell (Performance tab). */
-const sectionIconClass =
-  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.02] text-black/62";
-
 const columns: DataTableColumn[] = [
   { key: "name", label: "Campaign" },
   { key: "channel", label: "Channel" },
@@ -547,7 +543,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       >
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div class="flex min-w-0 items-center gap-3">
-            <div :class="sectionIconClass">
+            <div class="sv-section-icon-wrap">
               <BarChart3 class="h-5 w-5" :stroke-width="1.9" />
             </div>
             <h3 class="sv-card-title">Metric Timeline</h3>
@@ -591,7 +587,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       <div class="col-span-12 flex min-h-0 w-full flex-col gap-4">
         <SurfaceCard variant="frame" padding="sm" class="min-w-0">
           <div class="mb-4 flex items-center gap-3">
-            <div :class="sectionIconClass">
+            <div class="sv-section-icon-wrap">
               <Layers3 class="h-5 w-5" :stroke-width="1.9" />
             </div>
             <h3 class="sv-card-title">Channel Comparison</h3>
@@ -623,7 +619,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
           <SurfaceCard variant="frame" padding="sm" class="min-w-0">
             <div class="mb-3 flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
-                <div :class="sectionIconClass">
+                <div class="sv-section-icon-wrap">
                   <Trophy class="h-5 w-5" :stroke-width="1.9" />
                 </div>
                 <h3 class="sv-card-title">Best</h3>
@@ -650,7 +646,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
           <SurfaceCard variant="frame" padding="sm" class="min-w-0">
             <div class="mb-3 flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
-                <div :class="sectionIconClass">
+                <div class="sv-section-icon-wrap">
                   <TriangleAlert class="h-5 w-5" :stroke-width="1.9" />
                 </div>
                 <h3 class="sv-card-title">Watch</h3>
@@ -683,7 +679,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
         class="col-span-12 flex flex-col gap-3 border-b border-black/[0.06] pb-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div class="flex min-w-0 items-start gap-3">
-          <div :class="sectionIconClass">
+          <div class="sv-section-icon-wrap">
             <Table2 class="h-5 w-5" :stroke-width="1.9" />
           </div>
           <div class="min-w-0">
