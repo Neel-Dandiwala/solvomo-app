@@ -123,7 +123,7 @@ const performanceTrend = [
   { label: "Wk 8", spend: 12100, revenue: 72000, leads: 226, sqls: 72, pipeline: 120000 },
 ] as const;
 
-const creativeAssets = [
+const creativeAssetsLegacy = [
   {
     id: "cr-founder-pov",
     name: "Founder POV - 15s Selfie",
@@ -276,7 +276,84 @@ const creativeAssets = [
     secondaryTag: "Low CTR",
     status: "Needs refresh",
   },
-] as const;
+];
+
+/** One demo row per cell in each 3×2 ad grid sheet (see `CreativeVariantThumb` slice geometry). */
+function makeAdGridCreativeAssets() {
+  const campaignIds = [
+    "cmp-meta-prospecting",
+    "cmp-meta-retargeting",
+    "cmp-google-brand",
+    "cmp-google-nonbrand",
+    "cmp-linkedin-abm",
+    "cmp-youtube-retargeting",
+  ];
+  const formats = ["UGC", "Video", "Carousel", "Image"];
+  const platforms = ["Meta Ads", "YouTube", "LinkedIn", "Google Ads"];
+  const statuses = ["Scaling", "Efficient", "Monitoring", "Under review", "Needs refresh", "Efficient"];
+
+  const rows: Array<{
+    id: string;
+    name: string;
+    format: string;
+    platform: string;
+    campaignId: string;
+    spend: number;
+    impressions: number;
+    ctr: number;
+    hookRate: number;
+    holdRate: number;
+    conversions: number;
+    revenue: number;
+    daysLive: number;
+    fatigueScore: number;
+    primaryTag: string;
+    secondaryTag: string;
+    status: string;
+    gridSheet: 1 | 2 | 3;
+    gridVariant: number;
+  }> = [];
+
+  for (let sheet = 1; sheet <= 3; sheet += 1) {
+    for (let v = 0; v < 6; v += 1) {
+      const seed = sheet * 97 + v * 41;
+      const spend = 900 + (seed % 11_800);
+      const impressions = 185_000 + (seed % 980_000);
+      const ctr = Math.round((0.35 + (seed % 190) / 100) * 100) / 100;
+      const conversions = 14 + (seed % 220);
+      const revenue = Math.round(spend * (1.75 + (seed % 55) / 22));
+
+      rows.push({
+        id: `cr-adgrid${sheet}-c${v}`,
+        name: `Ad grid ${sheet} · Creative ${v + 1}`,
+        format: formats[v % formats.length]!,
+        platform: platforms[(sheet + v) % platforms.length]!,
+        campaignId: campaignIds[seed % campaignIds.length]!,
+        spend,
+        impressions,
+        ctr,
+        hookRate: 16 + (seed % 34),
+        holdRate: 11 + (seed % 27),
+        conversions,
+        revenue,
+        daysLive: 4 + (seed % 32),
+        fatigueScore: 14 + (seed % 72),
+        primaryTag: "Grid inventory",
+        secondaryTag: `Panel ${v + 1}`,
+        status: statuses[seed % statuses.length]!,
+        gridSheet: sheet as 1 | 2 | 3,
+        gridVariant: v,
+      });
+    }
+  }
+
+  return rows;
+}
+
+const creativeAssets = [...creativeAssetsLegacy, ...makeAdGridCreativeAssets()];
+
+/** Direct imports for pages that must not rely on composable return shape (e.g. Creatives table / allocation). */
+export { performanceCampaigns, creativeAssets };
 
 const audienceSegments = [
   {

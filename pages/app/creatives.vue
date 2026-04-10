@@ -1,8 +1,11 @@
 <script setup lang="ts">
 // @ts-nocheck
+import { toValue } from "vue";
+import { creativeAssets as demoCreativeAssets, performanceCampaigns as demoPerformanceCampaigns } from "~/composables/useDemoAnalytics";
 import {
   CalendarRange,
   Download,
+  Gauge,
   Layers3,
   Palette,
   Sparkles,
@@ -11,6 +14,7 @@ import {
   TimerReset,
   TrendingDown,
   TrendingUp,
+  Wallet,
 } from "lucide-vue-next";
 import AnalyticsLineChart from "~/components/app/analytics/AnalyticsLineChart.vue";
 import CreativeVariantThumb from "~/components/app/creatives/CreativeVariantThumb.vue";
@@ -24,14 +28,11 @@ definePageMeta({ layout: "app" });
 useHead({ title: "Creatives — Solvomo" });
 
 const { dataStatus } = useAppData();
+
+const demoAnalytics = useDemoAnalytics();
 const {
   reportingMeta,
-  performanceCampaigns,
   performanceTrend,
-  creativeAssets,
-  creativeFormats,
-  creativePlatforms,
-  creativeFormatBreakdown,
   creativeInsights,
   formatCompactCurrency,
   formatCompactNumber,
@@ -39,13 +40,16 @@ const {
   formatMultiplier,
   channelVariant,
   statusVariant,
-} = useDemoAnalytics();
+} = demoAnalytics;
+
+const creativeFormats = computed(() => toValue(demoAnalytics.creativeFormats) ?? []);
+const creativePlatforms = computed(() => toValue(demoAnalytics.creativePlatforms) ?? []);
 
 const adGridImages = [adGrid1, adGrid2, adGrid3] as const;
 
-type CreativeAsset = (typeof creativeAssets)[number];
+type CreativeAsset = (typeof demoCreativeAssets)[number];
 
-const selectedRange = ref("Last 30 days");
+const selectedRange = ref("Last 8 weeks");
 const selectedFormat = ref("All formats");
 const selectedPlatform = ref("All platforms");
 const selectedRegion = ref("All regions");
@@ -54,15 +58,19 @@ const sortLeaderboard = ref<"revenue" | "roas" | "fatigue">("revenue");
 
 const creativeRegionOptions = computed(() => {
   const set = new Set<string>();
-  performanceCampaigns.forEach((c) => set.add(c.region));
+  demoPerformanceCampaigns.forEach((c) => set.add(c.region));
   return ["All regions", ...Array.from(set).sort()];
 });
 
 function campaignRegionForAsset(asset: CreativeAsset) {
-  return performanceCampaigns.find((c) => c.id === asset.campaignId)?.region ?? "";
+  return demoPerformanceCampaigns.find((c) => c.id === asset.campaignId)?.region ?? "";
 }
 
 function gridImageForAsset(asset: CreativeAsset) {
+  if ("gridSheet" in asset && asset.gridSheet != null) {
+    const s = asset.gridSheet;
+    return { src: adGridImages[s - 1]!, sheet: s };
+  }
   let h = 0;
   for (let i = 0; i < asset.id.length; i += 1) h = (h * 31 + asset.id.charCodeAt(i)) >>> 0;
   const idx = h % adGridImages.length;
@@ -76,11 +84,25 @@ function baseVariantForAsset(asset: CreativeAsset) {
 }
 
 function variantForAsset(asset: CreativeAsset, offset = 0) {
+  if ("gridVariant" in asset && asset.gridVariant != null) {
+    return (asset.gridVariant + offset) % 6;
+  }
   return (baseVariantForAsset(asset) + offset) % 6;
 }
 
+/** Table thumb: exact grid cell for inventory rows; legacy assets use hashed variant. */
+function thumbVariantForLibrary(asset: CreativeAsset) {
+  if ("gridVariant" in asset && asset.gridVariant != null) return asset.gridVariant;
+  return variantForAsset(asset, 0);
+}
+
 function assetForTableRow(id: string): CreativeAsset {
-  return filteredAssets.value.find((a) => a.id === id) ?? filteredAssets.value[0] ?? creativeAssets[0]!;
+  return (
+    libraryAssetsOnly.value.find((a) => a.id === id) ??
+    filteredAssets.value.find((a) => a.id === id) ??
+    demoCreativeAssets.find((a) => a.id === id) ??
+    demoCreativeAssets[0]!
+  );
 }
 
 function cvrFromAsset(asset: CreativeAsset) {
@@ -95,13 +117,22 @@ function fatigueLabel(score: number) {
 }
 
 const filteredAssets = computed(() =>
-  creativeAssets.filter((asset: CreativeAsset) => {
+  demoCreativeAssets.filter((asset: CreativeAsset) => {
     if (selectedFormat.value !== "All formats" && asset.format !== selectedFormat.value) return false;
     if (selectedPlatform.value !== "All platforms" && asset.platform !== selectedPlatform.value) return false;
-    if (selectedRegion.value !== "All regions" && campaignRegionForAsset(asset) !== selectedRegion.value) return false;
-    return true;
+    const regionSel = selectedRegion.value;
+    if (!regionSel || regionSel === "All regions") return true;
+    return campaignRegionForAsset(asset) === regionSel;
   }),
 );
+
+/** Library table: prefer one row per ad-grid cell (`gridSheet`); if none match, show full filtered cohort. */
+const libraryAssetsOnly = computed(() => {
+  const rows = filteredAssets.value.filter((a: CreativeAsset) =>
+    Number.isFinite((a as { gridSheet?: unknown }).gridSheet),
+  );
+  return rows.length ? rows : filteredAssets.value;
+});
 
 const metadataItems = computed(() => [
   { label: "Last synced", value: reportingMeta.lastSynced },
@@ -126,7 +157,7 @@ const creativeTotals = computed(() => {
   };
 });
 
-/** Executive KPI row — fewer metrics, clearer hierarchy (aligned with Performance density). */
+/** Same KPI card treatment as Performance (`AnalyticsMetricCard` + sparkline). */
 const kpis = computed(() => [
   {
     title: "Tracked spend",
@@ -134,8 +165,8 @@ const kpis = computed(() => [
     delta: "+7.2%",
     helper: "Visual media",
     tone: "info" as const,
-    icon: Target,
-    trend: filteredAssets.value.map((asset) => asset.spend / 1000),
+    icon: Wallet,
+    trend: performanceTrend.map((point) => point.spend * 0.08),
   },
   {
     title: "Creative revenue",
@@ -144,7 +175,7 @@ const kpis = computed(() => [
     helper: "Attributed",
     tone: "success" as const,
     icon: TrendingUp,
-    trend: filteredAssets.value.map((asset) => asset.revenue / 1000),
+    trend: performanceTrend.map((point) => point.revenue * 0.085),
   },
   {
     title: "Blended CTR",
@@ -153,7 +184,7 @@ const kpis = computed(() => [
     helper: "Weighted",
     tone: "success" as const,
     icon: Target,
-    trend: filteredAssets.value.map((asset) => asset.ctr),
+    trend: performanceTrend.map((point) => point.leads * 0.45),
   },
   {
     title: "ROAS",
@@ -161,8 +192,8 @@ const kpis = computed(() => [
     delta: "+0.5x",
     helper: "Asset cohort",
     tone: "success" as const,
-    icon: TrendingUp,
-    trend: filteredAssets.value.map((asset) => asset.revenue / Math.max(asset.spend, 1)),
+    icon: Gauge,
+    trend: performanceTrend.map((point) => point.revenue / Math.max(point.spend, 1)),
   },
 ]);
 
@@ -211,8 +242,34 @@ const healthCards = computed(() => [
   },
 ]);
 
+/** By-format rollups for the current filter cohort (keeps Spend allocation in sync with the table). */
+const formatBreakdownFiltered = computed(() => {
+  const grouped = new Map<string, { spend: number; revenue: number; conversions: number; avgCtrWeighted: number; impressions: number }>();
+
+  filteredAssets.value.forEach((asset: CreativeAsset) => {
+    const current = grouped.get(asset.format) ?? { spend: 0, revenue: 0, conversions: 0, avgCtrWeighted: 0, impressions: 0 };
+    current.spend += asset.spend;
+    current.revenue += asset.revenue;
+    current.conversions += asset.conversions;
+    current.avgCtrWeighted += asset.ctr * asset.impressions;
+    current.impressions += asset.impressions;
+    grouped.set(asset.format, current);
+  });
+
+  return Array.from(grouped.entries())
+    .map(([label, value]) => ({
+      label,
+      spend: value.spend,
+      revenue: value.revenue,
+      conversions: value.conversions,
+      ctr: value.impressions ? value.avgCtrWeighted / value.impressions : 0,
+      roas: value.spend ? value.revenue / value.spend : 0,
+    }))
+    .sort((left, right) => right.revenue - left.revenue);
+});
+
 const formatSegments = computed(() =>
-  creativeFormatBreakdown.value.map((item, index) => ({
+  formatBreakdownFiltered.value.map((item, index) => ({
     label: item.label,
     value: item.spend,
     valueLabel: formatCompactCurrency(item.spend),
@@ -221,7 +278,7 @@ const formatSegments = computed(() =>
 );
 
 const formatRows = computed(() =>
-  creativeFormatBreakdown.value.map((item) => ({
+  formatBreakdownFiltered.value.map((item) => ({
     label: item.label,
     value: item.revenue,
     valueLabel: formatCompactCurrency(item.revenue),
@@ -236,6 +293,10 @@ const quickSignals = computed(() => [
   { label: "Static fatigue", variant: "warning" as const },
   { label: "Refresh LinkedIn proof", variant: "danger" as const },
 ]);
+
+function kpiColClass() {
+  return "col-span-12 sm:col-span-6 xl:col-span-3";
+}
 
 type VariantIntel = {
   variant: number;
@@ -282,7 +343,7 @@ const creativeTrendSeries = computed(() => {
 });
 
 const sortedForTable = computed(() => {
-  const rows = [...filteredAssets.value];
+  const rows = [...libraryAssetsOnly.value];
   switch (sortLeaderboard.value) {
     case "roas":
       rows.sort((a, b) => b.revenue / Math.max(b.spend, 1) - a.revenue / Math.max(a.spend, 1));
@@ -327,12 +388,6 @@ const columns: DataTableColumn[] = [
 const sectionIconClass =
   "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/8 bg-black/[0.02] text-black/62";
 
-const sectionIconClassSm =
-  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-black/8 bg-black/[0.02] text-black/62";
-
-function kpiColClass(index: number) {
-  return index < 2 ? "col-span-12 sm:col-span-6" : "col-span-12 sm:col-span-6 xl:col-span-3";
-}
 </script>
 
 <template>
@@ -346,7 +401,7 @@ function kpiColClass(index: number) {
         <span class="sv-section-title">Period</span>
         <div class="flex flex-wrap items-center gap-2">
           <button
-            v-for="option in ['Last 30 days', 'Last 8 weeks', 'Quarter to date']"
+            v-for="option in ['Last 8 weeks', 'Last 30 days', 'Quarter to date']"
             :key="option"
             type="button"
             class="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition"
@@ -358,33 +413,33 @@ function kpiColClass(index: number) {
           </button>
         </div>
       </div>
-      <div class="flex shrink-0 flex-col gap-1.5">
+      <div class="flex flex-col gap-1.5">
         <label for="cr-filter-format" class="sv-section-title">Format</label>
-        <select id="cr-filter-format" v-model="selectedFormat" class="app-control w-[11.5rem]">
+        <select id="cr-filter-format" v-model="selectedFormat" class="app-control min-w-[12rem]">
           <option v-for="option in creativeFormats" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
       </div>
-      <div class="flex shrink-0 flex-col gap-1.5">
+      <div class="flex flex-col gap-1.5">
         <label for="cr-filter-platform" class="sv-section-title">Platform</label>
-        <select id="cr-filter-platform" v-model="selectedPlatform" class="app-control w-[11.5rem]">
+        <select id="cr-filter-platform" v-model="selectedPlatform" class="app-control min-w-[12rem]">
           <option v-for="option in creativePlatforms" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
       </div>
-      <div class="flex shrink-0 flex-col gap-1.5">
+      <div class="flex flex-col gap-1.5">
         <label for="cr-filter-region" class="sv-section-title">Region</label>
-        <select id="cr-filter-region" v-model="selectedRegion" class="app-control w-[12.5rem]">
+        <select id="cr-filter-region" v-model="selectedRegion" class="app-control min-w-[12rem]">
           <option v-for="option in creativeRegionOptions" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
       </div>
-      <div class="flex shrink-0 flex-col gap-1.5">
+      <div class="flex flex-col gap-1.5">
         <label for="cr-sort" class="sv-section-title">Sort table</label>
-        <select id="cr-sort" v-model="sortLeaderboard" class="app-control w-[10.75rem]">
+        <select id="cr-sort" v-model="sortLeaderboard" class="app-control min-w-[12rem]">
           <option value="revenue">By revenue</option>
           <option value="roas">By ROAS</option>
           <option value="fatigue">By fatigue</option>
@@ -434,11 +489,10 @@ function kpiColClass(index: number) {
           :variant="chip.variant"
         />
       </div>
-
       <AnalyticsMetricCard
         v-for="(item, idx) in kpis"
         :key="item.title"
-        :class="kpiColClass(idx)"
+        :class="kpiColClass()"
         :title="item.title"
         :value="item.value"
         :delta="item.delta"
@@ -449,23 +503,89 @@ function kpiColClass(index: number) {
         dense
       />
 
-      <!-- Creative intelligence hero -->
+      <!-- Spend allocation + library first (demo data + scroll visibility) -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div class="flex min-w-0 items-start gap-3">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div class="flex items-center gap-3">
             <div :class="sectionIconClass">
-              <Sparkles class="h-5 w-5" :stroke-width="1.9" />
+              <Layers3 class="h-5 w-5" :stroke-width="1.9" />
             </div>
-            <div class="min-w-0">
-              <h3 class="sv-card-title">Creative intelligence</h3>
-              <p class="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-black/52">
-                Visual-first read on what is winning, what is tiring, and where spend is concentrated — not a spreadsheet of
-                every sub-metric.
+            <div>
+              <h3 class="sv-card-title">Spend allocation</h3>
+              <p class="mt-1 text-[12px] text-black/45">
+                {{ filteredAssets.length }} creatives in view · {{ formatBreakdownFiltered.length }} format groups
               </p>
             </div>
           </div>
         </div>
-        <div class="mt-5 grid gap-3 lg:grid-cols-3">
+        <template v-if="formatSegments.length">
+          <AnalyticsSegmentBar :segments="formatSegments" />
+          <AnalyticsBarsList :items="formatRows" />
+        </template>
+        <p
+          v-else
+          class="rounded-[1rem] border border-dashed border-black/[0.12] bg-black/[0.02] px-4 py-8 text-center text-[13px] text-black/46"
+        >
+          No creatives match the current filters.
+        </p>
+      </SurfaceCard>
+
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div :class="sectionIconClass">
+              <Table2 class="h-5 w-5" :stroke-width="1.9" />
+            </div>
+            <div>
+              <h3 class="sv-card-title">Creative library</h3>
+              <p class="mt-1 text-[12px] text-black/45">{{ tableRows.length }} rows in this view</p>
+            </div>
+          </div>
+        </div>
+        <DataTable :columns="columns" :rows="tableRows" row-key="id" embed>
+          <template #cell-name="{ row }">
+            <div class="flex items-center gap-3">
+              <CreativeVariantThumb
+                :src="gridImageForAsset(assetForTableRow(String(row.id))).src"
+                :sheet="gridImageForAsset(assetForTableRow(String(row.id))).sheet"
+                :variant="thumbVariantForLibrary(assetForTableRow(String(row.id)))"
+                :alt="`${row.name} thumbnail`"
+                frame-class="h-12 w-10 shrink-0 rounded-[0.85rem] border-black/[0.08]"
+                crop-class="h-full w-full"
+              />
+              <div class="min-w-0">
+                <p class="font-semibold text-black">{{ row.name }}</p>
+                <p class="mt-0.5 text-[11px] text-black/45">{{ row.platform }} · {{ row.daysLive }}</p>
+              </div>
+            </div>
+          </template>
+          <template #cell-format="{ value }">
+            <StatusBadge :label="String(value)" variant="neutral" />
+          </template>
+          <template #cell-roas="{ value }">
+            <span class="font-semibold tabular-nums text-black">{{ value }}</span>
+          </template>
+          <template #cell-status="{ value }">
+            <StatusBadge :label="String(value)" :variant="statusVariant(String(value))" />
+          </template>
+          <template #cell-fatigue="{ row }">
+            <div class="flex flex-col items-start gap-1">
+              <span class="font-semibold tabular-nums text-black">{{ row.fatigue }}</span>
+              <span class="text-[11px] text-black/45">{{ row.fatigueLabel }}</span>
+            </div>
+          </template>
+        </DataTable>
+      </SurfaceCard>
+
+      <!-- Variation families (hero content) -->
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
+        <div class="mb-4 flex items-center gap-3">
+          <div :class="sectionIconClass">
+            <Sparkles class="h-5 w-5" :stroke-width="1.9" />
+          </div>
+          <h3 class="sv-card-title">Variation families</h3>
+        </div>
+        <div class="grid gap-3 lg:grid-cols-3">
           <article
             v-for="asset in intelligencePreviews"
             :key="asset.id"
@@ -515,22 +635,17 @@ function kpiColClass(index: number) {
 
       <!-- Top creatives + variation / watch -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-7">
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div :class="sectionIconClass">
-              <Palette class="h-5 w-5" :stroke-width="1.9" />
-            </div>
-            <div>
-              <h3 class="sv-card-title">Top creatives</h3>
-              <p class="mt-0.5 text-[12px] text-black/48">Preview tiles from tracked ad grids</p>
-            </div>
+        <div class="mb-4 flex items-center gap-3">
+          <div :class="sectionIconClass">
+            <Palette class="h-5 w-5" :stroke-width="1.9" />
           </div>
+          <h3 class="sv-card-title">Top creatives</h3>
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <article
             v-for="asset in galleryAssets"
             :key="asset.id"
-            class="group overflow-hidden rounded-[1.15rem] border border-black/[0.07] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]"
+            class="sv-card-inset group overflow-hidden rounded-[1.25rem] border border-black/[0.06] bg-white/95"
           >
             <div class="relative aspect-[4/3] overflow-hidden border-b border-black/[0.05] bg-black/[0.03]">
               <div class="absolute inset-0 p-4">
@@ -594,14 +709,11 @@ function kpiColClass(index: number) {
             <div :class="sectionIconClass">
               <Layers3 class="h-5 w-5" :stroke-width="1.9" />
             </div>
-            <div>
-              <h3 class="sv-card-title">Variation check</h3>
-              <p class="mt-0.5 text-[12px] text-black/48">Best vs underperforming</p>
-            </div>
+            <h3 class="sv-card-title">Variation check</h3>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="rounded-[1rem] border border-black/[0.06] bg-black/[0.02] p-3">
-              <p class="sv-section-title">Top ROAS</p>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/45">Top ROAS</p>
               <div class="mt-2 flex gap-2">
                 <CreativeVariantThumb
                   :src="gridImageForAsset(bestVariation).src"
@@ -620,7 +732,7 @@ function kpiColClass(index: number) {
               </div>
             </div>
             <div class="rounded-[1rem] border border-black/[0.06] bg-black/[0.02] p-3">
-              <p class="sv-section-title">Watchlist</p>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/45">Watchlist</p>
               <div class="mt-2 flex gap-2">
                 <CreativeVariantThumb
                   :src="gridImageForAsset(worstWatch).src"
@@ -641,15 +753,12 @@ function kpiColClass(index: number) {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard variant="product" padding="sm" class="min-w-0">
+        <SurfaceCard variant="frame" padding="sm" class="min-w-0">
           <div class="mb-3 flex items-center gap-3">
             <div :class="sectionIconClass">
               <Sparkles class="h-5 w-5" :stroke-width="1.9" />
             </div>
-            <div>
-              <h3 class="sv-card-title">Signals</h3>
-              <p class="mt-0.5 text-[12px] text-black/48">Patterns from your library</p>
-            </div>
+            <h3 class="sv-card-title">Signals</h3>
           </div>
           <div class="space-y-2.5">
             <div
@@ -657,27 +766,23 @@ function kpiColClass(index: number) {
               :key="insight.title"
               class="rounded-[1rem] border border-black/[0.06] bg-white/90 px-3.5 py-3"
             >
-              <p class="sv-section-title">{{ insight.title }}</p>
-              <p class="mt-1 text-[13px] font-semibold text-black">{{ insight.value }}</p>
+              <p class="text-[13px] font-semibold tabular-nums text-black">{{ insight.value }}</p>
+              <p class="mt-1 text-[12px] text-black/48">{{ insight.title }}</p>
               <p class="mt-1.5 text-[12px] leading-relaxed text-black/50">{{ insight.note }}</p>
             </div>
           </div>
         </SurfaceCard>
       </div>
 
-      <!-- Trend -->
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex min-h-0 min-w-0 flex-col gap-4">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center gap-3">
-            <div :class="sectionIconClass">
-              <TrendingUp class="h-5 w-5" :stroke-width="1.9" />
-            </div>
-            <div>
-              <h3 class="sv-card-title">Creative performance trend</h3>
-              <p class="mt-0.5 text-[12px] text-black/48">Attributed creative revenue · {{ reportingMeta.comparisonLabel }}</p>
-            </div>
+      <!-- Trend — icon + title only (KPI row above; no repeated metric strip) -->
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex h-fit min-h-0 min-w-0 w-full flex-col gap-4">
+        <div class="flex min-w-0 items-center gap-3">
+          <div :class="sectionIconClass">
+            <TrendingUp class="h-5 w-5" :stroke-width="1.9" />
           </div>
+          <h3 class="sv-card-title">Creative performance trend</h3>
         </div>
+
         <AnalyticsLineChart
           :labels="creativeTrendSeries.labels"
           :series="creativeTrendSeries.series"
@@ -687,30 +792,12 @@ function kpiColClass(index: number) {
         />
       </SurfaceCard>
 
-      <!-- Allocation | Fatigue — side by side with deliberate gutter -->
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-6">
-        <div class="mb-4 flex items-center gap-3">
-          <div :class="sectionIconClass">
-            <Layers3 class="h-5 w-5" :stroke-width="1.9" />
-          </div>
-          <div>
-            <h3 class="sv-card-title">Spend allocation</h3>
-            <p class="mt-0.5 text-[12px] text-black/48">By format</p>
-          </div>
-        </div>
-        <AnalyticsSegmentBar :segments="formatSegments" />
-        <AnalyticsBarsList :items="formatRows" />
-      </SurfaceCard>
-
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-6">
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 min-w-0">
         <div class="mb-4 flex items-center gap-3">
           <div :class="sectionIconClass">
             <TimerReset class="h-5 w-5" :stroke-width="1.9" />
           </div>
-          <div>
-            <h3 class="sv-card-title">Fatigue &amp; health</h3>
-            <p class="mt-0.5 text-[12px] text-black/48">Who needs a refresh</p>
-          </div>
+          <h3 class="sv-card-title">Fatigue &amp; health</h3>
         </div>
         <div class="mb-6 grid gap-2.5">
           <div
@@ -719,8 +806,8 @@ function kpiColClass(index: number) {
             class="flex items-center justify-between gap-3 rounded-[1rem] border border-black/[0.06] bg-black/[0.02] px-3.5 py-3"
           >
             <div class="flex min-w-0 items-center gap-3">
-              <div :class="sectionIconClassSm">
-                <component :is="card.icon" class="h-4 w-4" :stroke-width="1.9" />
+              <div :class="sectionIconClass">
+                <component :is="card.icon" class="h-5 w-5" :stroke-width="1.9" />
               </div>
               <div class="min-w-0">
                 <p class="sv-section-title">{{ card.label }}</p>
@@ -730,7 +817,7 @@ function kpiColClass(index: number) {
             <p class="shrink-0 text-[15px] font-semibold tabular-nums text-black">{{ card.value }}</p>
           </div>
         </div>
-        <p class="mb-3 sv-section-title">Highest fatigue</p>
+        <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-black/45">Highest fatigue</p>
         <div class="space-y-3">
           <div
             v-for="asset in fatiguedCreatives"
@@ -763,54 +850,6 @@ function kpiColClass(index: number) {
             </div>
           </div>
         </div>
-      </SurfaceCard>
-
-      <!-- Detailed listing -->
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div :class="sectionIconClass">
-              <Table2 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
-            <div>
-              <h3 class="sv-card-title">Creative library</h3>
-              <p class="mt-0.5 text-[12px] text-black/48">Full list · sort with control above</p>
-            </div>
-          </div>
-        </div>
-        <DataTable :columns="columns" :rows="tableRows" row-key="id" embed>
-          <template #cell-name="{ row }">
-            <div class="flex items-center gap-3">
-              <CreativeVariantThumb
-                :src="gridImageForAsset(assetForTableRow(String(row.id))).src"
-                :sheet="gridImageForAsset(assetForTableRow(String(row.id))).sheet"
-                :variant="variantForAsset(assetForTableRow(String(row.id)), 1)"
-                :alt="`${row.name} thumbnail`"
-                frame-class="h-12 w-10 shrink-0 rounded-[0.85rem] border-black/[0.08]"
-                crop-class="h-full w-full"
-              />
-              <div class="min-w-0">
-                <p class="font-semibold text-black">{{ row.name }}</p>
-                <p class="mt-0.5 text-[11px] text-black/45">{{ row.platform }} · {{ row.daysLive }}</p>
-              </div>
-            </div>
-          </template>
-          <template #cell-format="{ value }">
-            <StatusBadge :label="String(value)" variant="neutral" />
-          </template>
-          <template #cell-roas="{ value }">
-            <span class="font-semibold tabular-nums text-black">{{ value }}</span>
-          </template>
-          <template #cell-status="{ value }">
-            <StatusBadge :label="String(value)" :variant="statusVariant(String(value))" />
-          </template>
-          <template #cell-fatigue="{ row }">
-            <div class="flex flex-col items-start gap-1">
-              <span class="font-semibold tabular-nums text-black">{{ row.fatigue }}</span>
-              <span class="text-[11px] text-black/45">{{ row.fatigueLabel }}</span>
-            </div>
-          </template>
-        </DataTable>
       </SurfaceCard>
     </section>
   </div>
