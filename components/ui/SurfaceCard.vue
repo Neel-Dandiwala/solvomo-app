@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     variant?: "frame" | "product" | "soft" | "depth";
-    padding?: "sm" | "md" | "lg";
+    padding?: "none" | "sm" | "md" | "lg";
   }>(),
   { variant: "frame", padding: "md" },
 );
@@ -22,6 +22,8 @@ const surface = computed(() => {
 
 const padClass = computed(() => {
   switch (props.padding) {
+    case "none":
+      return "";
     case "sm":
       return "p-5 sm:p-6";
     case "lg":

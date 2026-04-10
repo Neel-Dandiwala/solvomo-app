@@ -1,7 +1,15 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    variant?: "neutral" | "success" | "warning" | "danger" | "info" | "pending";
+    variant?:
+      | "neutral"
+      | "success"
+      | "warning"
+      | "danger"
+      | "info"
+      | "pending"
+      | "high"
+      | "muted";
     label: string;
   }>(),
   { variant: "neutral" },

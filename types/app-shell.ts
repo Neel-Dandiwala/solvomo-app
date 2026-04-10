@@ -29,17 +29,34 @@ export type ConnectionStatus =
 export interface SidebarNavItem {
   label: string;
   to: string;
-  icon?: "overview" | "chart" | "image" | "users" | "wallet" | "link" | "flask" | "bell" | "plug" | "settings";
+  icon?:
+    | "overview"
+    | "chart"
+    | "image"
+    | "evolve"
+    | "users"
+    | "wallet"
+    | "link"
+    | "flask"
+    | "bell"
+    | "plug"
+    | "settings";
 }
 
-export type AlertSeverity = "info" | "warning" | "critical";
+/** Operational alert severity (distinct visual treatment per level). */
+export type AlertSeverity = "critical" | "high" | "medium" | "low";
+
+/** Lifecycle state for triage and resolution. */
+export type AlertStatus = "open" | "investigating" | "resolved" | "muted";
 
 export interface AlertItem {
   id: string;
   title: string;
   summary: string;
   severity: AlertSeverity;
-  status: "open" | "acknowledged" | "resolved";
+  status: AlertStatus;
+  /** Affected system, connector, or surface (e.g. “Meta Ads · Prospecting”). */
+  source?: string;
   createdAt: string;
 }
 

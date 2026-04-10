@@ -2,19 +2,7 @@
 // @ts-nocheck
 import { toValue } from "vue";
 import { creativeAssets as demoCreativeAssets, performanceCampaigns as demoPerformanceCampaigns } from "~/composables/useDemoAnalytics";
-import {
-  CalendarRange,
-  Download,
-  Gauge,
-  Layers3,
-  Palette,
-  Sparkles,
-  Target,
-  TimerReset,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from "lucide-vue-next";
+import { CalendarRange, Download } from "lucide-vue-next";
 import AnalyticsLineChart from "~/components/app/analytics/AnalyticsLineChart.vue";
 import CreativeVariantThumb from "~/components/app/creatives/CreativeVariantThumb.vue";
 import adGrid1 from "~/assets/images/creatives/ad_grid_1.png";
@@ -162,7 +150,6 @@ const kpis = computed(() => [
     delta: "+7.2%",
     helper: "Visual media",
     tone: "info" as const,
-    icon: Wallet,
     trend: performanceTrend.map((point) => point.spend * 0.08),
   },
   {
@@ -171,7 +158,6 @@ const kpis = computed(() => [
     delta: "+12.1%",
     helper: "Attributed",
     tone: "success" as const,
-    icon: TrendingUp,
     trend: performanceTrend.map((point) => point.revenue * 0.085),
   },
   {
@@ -180,7 +166,6 @@ const kpis = computed(() => [
     delta: "+0.09 pts",
     helper: "Weighted",
     tone: "success" as const,
-    icon: Target,
     trend: performanceTrend.map((point) => point.leads * 0.45),
   },
   {
@@ -189,7 +174,6 @@ const kpis = computed(() => [
     delta: "+0.5x",
     helper: "Asset cohort",
     tone: "success" as const,
-    icon: Gauge,
     trend: performanceTrend.map((point) => point.revenue / Math.max(point.spend, 1)),
   },
 ]);
@@ -223,24 +207,21 @@ const healthCards = computed(() => [
     label: "Scaling",
     value: `${filteredAssets.value.filter((asset) => asset.status === "Scaling" || asset.status === "Efficient").length}`,
     meta: "Active winners",
-    icon: TrendingUp,
   },
   {
     label: "Fatigue risk",
     value: `${filteredAssets.value.filter((asset) => asset.fatigueScore >= 55).length}`,
     meta: "Needs refresh",
-    icon: TrendingDown,
   },
   {
     label: "Avg freshness",
     value: `${Math.round(100 - filteredAssets.value.reduce((sum, asset) => sum + asset.fatigueScore, 0) / Math.max(filteredAssets.value.length, 1))}`,
     meta: "Creative score / 100",
-    icon: Sparkles,
   },
 ]);
 
 const quickSignals = computed(() => [
-  { label: "UGC cluster strong", variant: "success" as const },
+  { label: "Creator proof cluster", variant: "success" as const },
   { label: "Carousel retargeting", variant: "info" as const },
   { label: "Static fatigue", variant: "warning" as const },
   { label: "Refresh LinkedIn proof", variant: "danger" as const },
@@ -445,7 +426,6 @@ const columns: DataTableColumn[] = [
         :delta="item.delta"
         :helper="item.helper"
         :tone="item.tone"
-        :icon="item.icon"
         :trend="item.trend"
         dense
       />
@@ -488,10 +468,7 @@ const columns: DataTableColumn[] = [
 
       <!-- Variation families (hero content) -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
-        <div class="mb-4 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <Sparkles class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-4">
           <h3 class="sv-card-title">Variation families</h3>
         </div>
         <div class="grid gap-3 lg:grid-cols-3">
@@ -544,10 +521,7 @@ const columns: DataTableColumn[] = [
 
       <!-- Top creatives + variation / watch -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-7">
-        <div class="mb-4 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <Palette class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-4">
           <h3 class="sv-card-title">Top creatives</h3>
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
@@ -614,10 +588,7 @@ const columns: DataTableColumn[] = [
 
       <div class="col-span-12 flex min-h-0 flex-col gap-4 lg:col-span-5">
         <SurfaceCard v-if="bestVariation && worstWatch" variant="frame" padding="sm" class="min-w-0">
-          <div class="mb-3 flex items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <Layers3 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="mb-3">
             <h3 class="sv-card-title">Variation check</h3>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
@@ -663,10 +634,7 @@ const columns: DataTableColumn[] = [
         </SurfaceCard>
 
         <SurfaceCard variant="frame" padding="sm" class="min-w-0">
-          <div class="mb-3 flex items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <Sparkles class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="mb-3">
             <h3 class="sv-card-title">Signals</h3>
           </div>
           <div class="space-y-2.5">
@@ -685,10 +653,7 @@ const columns: DataTableColumn[] = [
 
       <!-- Trend — icon + title only (KPI row above; no repeated metric strip) -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex h-fit min-h-0 min-w-0 w-full flex-col gap-4">
-        <div class="flex min-w-0 items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <TrendingUp class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="min-w-0">
           <h3 class="sv-card-title">Creative performance trend</h3>
         </div>
 
@@ -702,10 +667,7 @@ const columns: DataTableColumn[] = [
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 min-w-0">
-        <div class="mb-4 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <TimerReset class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-4">
           <h3 class="sv-card-title">Fatigue &amp; health</h3>
         </div>
         <div class="mb-6 grid gap-2.5">
@@ -714,14 +676,9 @@ const columns: DataTableColumn[] = [
             :key="card.label"
             class="flex items-center justify-between gap-3 rounded-[1rem] border border-black/[0.06] bg-black/[0.02] px-3.5 py-3"
           >
-            <div class="flex min-w-0 items-center gap-3">
-              <div class="sv-section-icon-wrap">
-                <component :is="card.icon" class="h-5 w-5" :stroke-width="1.9" />
-              </div>
-              <div class="min-w-0">
-                <p class="sv-section-title">{{ card.label }}</p>
-                <p class="mt-0.5 text-[12px] text-black/48">{{ card.meta }}</p>
-              </div>
+            <div class="min-w-0">
+              <p class="sv-section-title">{{ card.label }}</p>
+              <p class="mt-0.5 text-[12px] text-black/48">{{ card.meta }}</p>
             </div>
             <p class="shrink-0 text-[15px] font-semibold tabular-nums text-black">{{ card.value }}</p>
           </div>

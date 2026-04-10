@@ -10,6 +10,7 @@ import {
   Link2,
   Plug,
   Settings2,
+  Sparkles,
   Users,
   Wallet,
 } from "lucide-vue-next";
@@ -22,6 +23,7 @@ const ICON_MAP: Record<NonNullable<SidebarNavItem["icon"]>, Component> = {
   overview: LayoutGrid,
   chart: BarChart3,
   image: Image,
+  evolve: Sparkles,
   users: Users,
   wallet: Wallet,
   link: Link2,
@@ -43,7 +45,7 @@ function isActive(to: string) {
 
 <template>
   <aside
-    class="app-sidebar flex h-full min-h-0 shrink-0 flex-col lg:h-svh"
+    class="app-sidebar flex h-full min-h-0 shrink-0 flex-col"
     :class="sidebarCollapsed ? 'app-sidebar--narrow' : 'app-sidebar--wide'"
   >
     <div class="flex h-16 items-center gap-3 border-b border-black/8 px-4 lg:h-[4.75rem] lg:px-4.5">

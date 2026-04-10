@@ -7,33 +7,30 @@ const auth = useAuth();
 
 const name = ref("");
 const email = ref("riya@solvomo.co");
-const password = ref("demo");
-const passwordConfirm = ref("demo");
+const password = ref("riya");
+const passwordConfirm = ref("riya");
 const error = ref("");
+
+function useDemoUser(user: "neel" | "riya") {
+  email.value = user === "neel" ? "neel@solvomo.co" : "riya@solvomo.co";
+  error.value = "";
+}
 
 async function onSubmit() {
   error.value = "";
-  if (!name.value.trim()) {
-    error.value = "Add your name so we can personalize the workspace.";
-    return;
-  }
-  if (!email.value.trim()) {
-    error.value = "Enter your work email.";
-    return;
-  }
-  if (password.value.length < 4) {
-    error.value = "Use at least 4 characters for this preview.";
-    return;
-  }
   if (password.value !== passwordConfirm.value) {
-    error.value = "Passwords need to match.";
+    error.value = "Try again.";
     return;
   }
-  auth.signup({
+  const result = auth.signup({
     email: email.value,
     password: password.value,
-    name: name.value,
+    name: name.value.trim(),
   });
+  if (!result.ok) {
+    error.value = result.message;
+    return;
+  }
   await navigateTo("/onboarding/survey");
 }
 </script>
@@ -77,6 +74,22 @@ async function onSubmit() {
       description="Start in preview mode — your answers configure the product shell only."
     >
       <form class="space-y-5" @submit.prevent="onSubmit">
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="button-secondary rounded-xl px-3 py-2 text-sm font-semibold"
+            @click="useDemoUser('neel')"
+          >
+            Use Neel demo
+          </button>
+          <button
+            type="button"
+            class="button-secondary rounded-xl px-3 py-2 text-sm font-semibold"
+            @click="useDemoUser('riya')"
+          >
+            Use Riya demo
+          </button>
+        </div>
         <p v-if="error" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
           {{ error }}
         </p>
@@ -85,7 +98,7 @@ async function onSubmit() {
             for="signup-name"
             class="mb-2.5 block text-xs font-semibold uppercase tracking-[0.14em] text-black/48"
           >
-            Full name
+            Full name (optional)
           </label>
           <input
             id="signup-name"
@@ -128,7 +141,7 @@ async function onSubmit() {
             name="password"
             autocomplete="new-password"
             class="auth-input"
-            placeholder="At least 4 characters"
+            placeholder="••••••"
           >
         </div>
         <div>

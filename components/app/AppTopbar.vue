@@ -2,29 +2,12 @@
 import { ChevronDown, Menu } from "lucide-vue-next";
 import UserMenu from "~/components/app/UserMenu.vue";
 
-const route = useRoute();
 const {
   brandsForWorkspace,
   currentBrand,
   setBrand,
   toggleMobileNav,
 } = useWorkspaceContext();
-
-const TITLE_MAP: Record<string, string> = {
-  "/app": "Overview",
-  "/app/overview": "Overview",
-  "/app/performance": "Performance",
-  "/app/creatives": "Creatives",
-  "/app/audience": "Audience",
-  "/app/spend": "Spend",
-  "/app/crm": "CRM / Outcomes",
-  "/app/lab": "Lab",
-  "/app/alerts": "Alerts",
-  "/app/connections": "Connections",
-  "/app/settings": "Settings",
-};
-
-const pageTitle = computed(() => TITLE_MAP[route.path] ?? "Solvomo");
 
 const brandOpen = ref(false);
 const brandRoot = ref<HTMLElement | null>(null);
@@ -53,9 +36,6 @@ onUnmounted(() => document.removeEventListener("click", onBrandDocClick));
         <p class="sv-meta hidden sm:block">
           {{ currentBrand?.name }}
         </p>
-        <h2 class="truncate text-[1.45rem] font-semibold tracking-[-0.045em] text-black lg:text-[1.75rem]">
-          {{ pageTitle }}
-        </h2>
       </div>
       <div class="hidden min-w-0 max-w-[18rem] flex-1 justify-center px-2 2xl:flex lg:max-w-[20rem] lg:flex-none">
         <CommandSearchTrigger />

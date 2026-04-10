@@ -7,25 +7,16 @@ const route = useRoute();
 const auth = useAuth();
 
 const email = ref("neel@solvomo.co");
-const password = ref("demo");
+const password = ref("neel");
 const error = ref("");
 
 function useDemoUser(user: "neel" | "riya") {
   email.value = user === "neel" ? "neel@solvomo.co" : "riya@solvomo.co";
-  password.value = "demo";
   error.value = "";
 }
 
 async function onSubmit() {
   error.value = "";
-  if (!email.value.trim()) {
-    error.value = "Enter your work email.";
-    return;
-  }
-  if (!password.value.trim()) {
-    error.value = "Enter any password for this preview.";
-    return;
-  }
   const result = auth.login(email.value, password.value);
   if (!result.ok) {
     error.value = result.message;

@@ -1,24 +1,6 @@
 <script setup lang="ts">
 // @ts-nocheck
-import {
-  Activity,
-  Award,
-  BarChart3,
-  CalendarRange,
-  Download,
-  Eye,
-  Gauge,
-  Layers3,
-  MousePointerClick,
-  PieChart,
-  Table2,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  Trophy,
-  TriangleAlert,
-  Wallet,
-} from "lucide-vue-next";
+import { CalendarRange, Download, Layers3 } from "lucide-vue-next";
 import AnalyticsCampaignRevSpendBars from "~/components/app/analytics/AnalyticsCampaignRevSpendBars.vue";
 import AnalyticsConicDonutLite from "~/components/app/analytics/AnalyticsConicDonutLite.vue";
 import AnalyticsMetricHBarRank from "~/components/app/analytics/AnalyticsMetricHBarRank.vue";
@@ -28,7 +10,6 @@ definePageMeta({ layout: "app" });
 
 useHead({ title: "Performance — Solvomo" });
 
-const { dataStatus } = useAppData();
 const {
   reportingMeta,
   performanceCampaigns,
@@ -107,7 +88,6 @@ const kpis = computed(() => [
     delta: "+11.8%",
     helper: "Reach",
     tone: "info" as const,
-    icon: Activity,
     trend: performanceTrend.map((point) => point.leads),
   },
   {
@@ -116,7 +96,6 @@ const kpis = computed(() => [
     delta: "+9.4%",
     helper: "Traffic",
     tone: "success" as const,
-    icon: MousePointerClick,
     trend: performanceTrend.map((point) => point.leads),
   },
   {
@@ -125,7 +104,6 @@ const kpis = computed(() => [
     delta: "+0.12 pts",
     helper: "Efficiency",
     tone: "success" as const,
-    icon: Target,
     trend: performanceTrend.map((point) => point.leads / 6),
   },
   {
@@ -134,7 +112,6 @@ const kpis = computed(() => [
     delta: "-6.2%",
     helper: "Traffic cost",
     tone: "success" as const,
-    icon: Wallet,
     trend: performanceTrend.map((point) => point.spend / 1000),
   },
   {
@@ -143,7 +120,6 @@ const kpis = computed(() => [
     delta: "+0.19 pts",
     helper: "Post-click",
     tone: "success" as const,
-    icon: Gauge,
     trend: performanceTrend.map((point) => point.leads / 5),
   },
   {
@@ -152,7 +128,6 @@ const kpis = computed(() => [
     delta: "-8.5%",
     helper: "Lead cost",
     tone: "success" as const,
-    icon: TrendingDown,
     trend: performanceTrend.map((point) => point.spend / 900),
   },
   {
@@ -161,7 +136,6 @@ const kpis = computed(() => [
     delta: "+0.4x",
     helper: "Return",
     tone: "info" as const,
-    icon: TrendingUp,
     trend: performanceTrend.map((point) => point.revenue / point.spend),
   },
 ]);
@@ -442,8 +416,6 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
 
 <template>
   <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
-    <MockDataState :status="dataStatus" />
-
     <PageHeader title="Performance" dense metadata-tight hide-context />
 
     <FilterBar compact>
@@ -532,7 +504,6 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
         :delta="item.delta"
         :helper="item.helper"
         :tone="item.tone"
-        :icon="item.icon"
         :trend="item.trend"
         dense
       />
@@ -542,10 +513,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
         class="col-span-12 flex h-fit min-h-0 min-w-0 w-full flex-col gap-4"
       >
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div class="flex min-w-0 items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <BarChart3 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="min-w-0">
             <h3 class="sv-card-title">Metric Timeline</h3>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -586,10 +554,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
 
       <div class="col-span-12 flex min-h-0 w-full flex-col gap-4">
         <SurfaceCard variant="frame" padding="sm" class="min-w-0">
-          <div class="mb-4 flex items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <Layers3 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="mb-4">
             <h3 class="sv-card-title">Channel Comparison</h3>
           </div>
           <div class="divide-y divide-black/[0.06]">
@@ -618,12 +583,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SurfaceCard variant="frame" padding="sm" class="min-w-0">
             <div class="mb-3 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="sv-section-icon-wrap">
-                  <Trophy class="h-5 w-5" :stroke-width="1.9" />
-                </div>
-                <h3 class="sv-card-title">Best</h3>
-              </div>
+              <h3 class="sv-card-title">Best</h3>
               <StatusBadge label="Top ROAS" variant="success" />
             </div>
             <p class="text-[15px] font-semibold leading-snug tracking-[-0.02em] text-black">{{ bestPerformer?.name }}</p>
@@ -645,12 +605,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
 
           <SurfaceCard variant="frame" padding="sm" class="min-w-0">
             <div class="mb-3 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="sv-section-icon-wrap">
-                  <TriangleAlert class="h-5 w-5" :stroke-width="1.9" />
-                </div>
-                <h3 class="sv-card-title">Watch</h3>
-              </div>
+              <h3 class="sv-card-title">Watch</h3>
               <StatusBadge label="Review" variant="warning" />
             </div>
             <p class="text-[15px] font-semibold leading-snug tracking-[-0.02em] text-black">{{ worstPerformer?.name }}</p>
@@ -678,16 +633,11 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       <div
         class="col-span-12 flex flex-col gap-3 border-b border-black/[0.06] pb-4 sm:flex-row sm:items-end sm:justify-between"
       >
-        <div class="flex min-w-0 items-start gap-3">
-          <div class="sv-section-icon-wrap">
-            <Table2 class="h-5 w-5" :stroke-width="1.9" />
-          </div>
-          <div class="min-w-0">
-            <h3 class="sv-card-title">Campaign Performance</h3>
-            <p class="mt-1 max-w-xl text-[12px] leading-snug text-black/52">
-              {{ filteredCampaigns.length }} campaigns in this view · mix, efficiency, and full cohort.
-            </p>
-          </div>
+        <div class="min-w-0">
+          <h3 class="sv-card-title">Campaign Performance</h3>
+          <p class="mt-1 max-w-xl text-[12px] leading-snug text-black/52">
+            {{ filteredCampaigns.length }} campaigns in this view · mix, efficiency, and full cohort.
+          </p>
         </div>
         <button
           type="button"
@@ -700,10 +650,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
 
       <!-- Insight strip -->
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 sm:col-span-6 xl:col-span-3">
-        <div class="flex items-start justify-between gap-2">
-          <p class="sv-section-title">Top Revenue</p>
-          <Award class="h-4 w-4 shrink-0 text-black/35" :stroke-width="1.9" aria-hidden="true" />
-        </div>
+        <p class="sv-section-title">Top Revenue</p>
         <p class="mt-2 line-clamp-2 min-h-[2.5rem] text-[14px] font-semibold leading-snug text-black">
           {{ topRevenueCampaignIntel?.name ?? "—" }}
         </p>
@@ -721,10 +668,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 sm:col-span-6 xl:col-span-3">
-        <div class="flex items-start justify-between gap-2">
-          <p class="sv-section-title">Highest ROAS</p>
-          <TrendingUp class="h-4 w-4 shrink-0 text-black/35" :stroke-width="1.9" aria-hidden="true" />
-        </div>
+        <p class="sv-section-title">Highest ROAS</p>
         <p class="mt-2 line-clamp-2 min-h-[2.5rem] text-[14px] font-semibold leading-snug text-black">
           {{ topRoasCampaignIntel?.name ?? "—" }}
         </p>
@@ -737,10 +681,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 sm:col-span-6 xl:col-span-3">
-        <div class="flex items-start justify-between gap-2">
-          <p class="sv-section-title">Needs Attention</p>
-          <Eye class="h-4 w-4 shrink-0 text-black/35" :stroke-width="1.9" aria-hidden="true" />
-        </div>
+        <p class="sv-section-title">Needs Attention</p>
         <p class="mt-2 line-clamp-2 min-h-[2.5rem] text-[14px] font-semibold leading-snug text-black">
           {{ watchlistCampaignIntel?.name ?? "—" }}
         </p>
@@ -758,10 +699,7 @@ function onCampaignTableRowClick(row: Record<string, unknown>) {
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 sm:col-span-6 xl:col-span-3">
-        <div class="flex items-start justify-between gap-2">
-          <p class="sv-section-title">Spend Concentration</p>
-          <PieChart class="h-4 w-4 shrink-0 text-black/35" :stroke-width="1.9" aria-hidden="true" />
-        </div>
+        <p class="sv-section-title">Spend Concentration</p>
         <p class="mt-2 text-[13px] leading-snug text-black/55">
           Leading campaign holds
           <span class="font-semibold tabular-nums text-black/80">{{ spendConcentrationIntel.topPct.toFixed(0) }}%</span>

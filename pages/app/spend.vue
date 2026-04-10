@@ -1,17 +1,6 @@
 <script setup lang="ts">
 // @ts-nocheck
-import {
-  CalendarRange,
-  Download,
-  Layers3,
-  PiggyBank,
-  Receipt,
-  Table2,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from "lucide-vue-next";
+import { CalendarRange, Download } from "lucide-vue-next";
 import {
   spendDemoCampaigns,
   spendDemoChannelFallback,
@@ -114,7 +103,6 @@ const kpis = computed(() => [
     delta: "+8.4%",
     helper: "Paid + tracked",
     tone: "info" as const,
-    icon: Wallet,
     trend: spendDemoWeeks.map((row) => row.actual),
   },
   {
@@ -123,7 +111,6 @@ const kpis = computed(() => [
     delta: "+5.2%",
     helper: "31-day avg",
     tone: "neutral" as const,
-    icon: PiggyBank,
     trend: spendDemoWeeks.map((row) => row.actual / 7),
   },
   {
@@ -132,7 +119,6 @@ const kpis = computed(() => [
     delta: budgetPacingPct.value > 100 ? "Over plan" : "Within plan",
     helper: "Actual vs budget",
     tone: budgetPacingPct.value > 100 ? ("warning" as const) : ("success" as const),
-    icon: Target,
     trend: spendDemoWeeks.map((row) => row.actual / Math.max(row.budget, 1) * 100),
   },
   {
@@ -141,7 +127,6 @@ const kpis = computed(() => [
     delta: "-4.3%",
     helper: "Blended",
     tone: "success" as const,
-    icon: TrendingDown,
     trend: spendDemoWeeks.map((row) => row.actual / Math.max(row.roas * 2, 1)),
   },
   {
@@ -150,7 +135,6 @@ const kpis = computed(() => [
     delta: "+0.4x",
     helper: "Revenue / spend",
     tone: "success" as const,
-    icon: TrendingUp,
     trend: spendDemoWeeks.map((row) => row.roas),
   },
 ]);
@@ -374,16 +358,12 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
         :delta="item.delta"
         :helper="item.helper"
         :tone="item.tone"
-        :icon="item.icon"
         :trend="item.trend"
         dense
       />
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-6">
-        <div class="mb-3 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <Layers3 class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-3">
           <h3 class="sv-card-title">
             Budget Split
           </h3>
@@ -415,10 +395,7 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-h-0 lg:col-span-6">
-        <div class="mb-3 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <Target class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-3">
           <h3 class="sv-card-title">
             Spend by Goal
           </h3>
@@ -457,10 +434,7 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12 flex min-h-[12rem] min-w-0 w-full flex-col">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <Wallet class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="min-w-0">
             <h3 class="sv-card-title">
               Spend vs Budget
             </h3>
@@ -513,10 +487,7 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12">
-        <div class="mb-3 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <Target class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-3">
           <h3 class="sv-card-title">
             Campaign Progress
           </h3>
@@ -553,10 +524,7 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
       </SurfaceCard>
 
       <SurfaceCard variant="frame" padding="sm" class="col-span-12">
-        <div class="mb-3 flex items-center gap-3">
-          <div class="sv-section-icon-wrap">
-            <Receipt class="h-5 w-5" :stroke-width="1.9" />
-          </div>
+        <div class="mb-3">
           <h3 class="sv-card-title">
             Transaction History
           </h3>
@@ -602,10 +570,7 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
 
       <div class="col-span-12 grid grid-cols-12 gap-3 lg:gap-4">
         <SurfaceCard variant="frame" padding="sm" class="col-span-12 xl:col-span-6">
-          <div class="mb-3 flex items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <CalendarRange class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="mb-3">
             <h3 class="sv-card-title">
               Weekly Summary
             </h3>
@@ -639,10 +604,7 @@ const tdClass = "data-table-td border-t border-black/6 px-4 py-3 text-black/86 s
         </SurfaceCard>
 
         <SurfaceCard variant="frame" padding="sm" class="col-span-12 xl:col-span-6">
-          <div class="mb-3 flex items-center gap-3">
-            <div class="sv-section-icon-wrap">
-              <Table2 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
+          <div class="mb-3">
             <h3 class="sv-card-title">
               Budget Detail
             </h3>

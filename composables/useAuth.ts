@@ -1,5 +1,5 @@
 import type { OnboardingStepKey, SolvomoUserId } from "~/types/mock";
-import { getMockBundle, MOCK_USERS, resolveUserIdFromEmail } from "~/data/mock-solvomo";
+import { getMockBundle, MOCK_USERS, validateDemoCredentials } from "~/data/mock-solvomo";
 
 const STORAGE_KEY = "sv-auth-session";
 
@@ -9,6 +9,30 @@ export interface AuthSession {
   /** Optional override when signing up with a custom name. */
   name?: string;
   onboardingSteps: OnboardingStepKey[];
+}
+
+function profileNameForUser(userId: SolvomoUserId): string {
+  return MOCK_USERS[userId]?.profile.name ?? "";
+}
+
+/** Session name must be a string; legacy / bad localStorage can store non-strings. */
+function normalizeSessionName(parsed: AuthSession): void {
+  const n = parsed.name as unknown;
+  if (n == null || n === "") return;
+  if (typeof n === "string") {
+    parsed.name = n.trim() || undefined;
+    return;
+  }
+  parsed.name = undefined;
+}
+
+function resolveDisplayName(s: AuthSession | null): string {
+  if (!s) return "";
+  const fromProfile = profileNameForUser(s.userId);
+  const raw = s.name;
+  if (raw == null || raw === "") return fromProfile;
+  if (typeof raw === "string") return raw.trim() || fromProfile;
+  return fromProfile;
 }
 
 function defaultStepsForUser(userId: SolvomoUserId): OnboardingStepKey[] {
@@ -49,9 +73,7 @@ export function useAuth() {
 
   const activeUserId = computed(() => session.value?.userId ?? null);
 
-  const displayName = computed(
-    () => session.value?.name ?? (session.value ? MOCK_USERS[session.value.userId].profile.name : ""),
-  );
+  const displayName = computed(() => resolveDisplayName(session.value));
 
   const displayEmail = computed(() => session.value?.email ?? "");
 
@@ -119,7 +141,9 @@ export function useAuth() {
       const parsed = JSON.parse(raw) as AuthSession;
       if (!parsed.userId || !MOCK_USERS[parsed.userId]) return;
       if (!Array.isArray(parsed.onboardingSteps)) parsed.onboardingSteps = [];
+      normalizeSessionName(parsed);
       session.value = parsed;
+      persist();
       ensureHydrated();
     } catch {
       localStorage.removeItem(STORAGE_KEY);
@@ -144,7 +168,7 @@ export function useAuth() {
     session.value = {
       userId,
       email,
-      name: nameOverride,
+      name: typeof nameOverride === "string" ? nameOverride.trim() || undefined : undefined,
       onboardingSteps: [...merged],
     };
     hydrateWorkspaceFromMock(userId);
@@ -152,30 +176,33 @@ export function useAuth() {
     persist();
   }
 
-  function login(email: string, _password: string): { ok: true } | { ok: false; message: string } {
-    const id = resolveUserIdFromEmail(email);
+  const DEMO_AUTH_ERROR = "Try again.";
+
+  function login(email: string, password: string): { ok: true } | { ok: false; message: string } {
+    const id = validateDemoCredentials(email, password);
     if (!id) {
-      return {
-        ok: false,
-        message: "Use a demo account: neel@solvomo.co or riya@solvomo.co",
-      };
+      return { ok: false, message: DEMO_AUTH_ERROR };
     }
     loginWithUserId(id, email.trim().toLowerCase());
     return { ok: true };
   }
 
-  function signup(payload: { email: string; password: string; name: string }): void {
+  function signup(payload: { email: string; password: string; name: string }): { ok: true } | { ok: false; message: string } {
+    const id = validateDemoCredentials(payload.email, payload.password);
+    if (!id) {
+      return { ok: false, message: DEMO_AUTH_ERROR };
+    }
     const email = payload.email.trim().toLowerCase();
-    const id: SolvomoUserId = "riya";
     session.value = {
       userId: id,
-      email: email || MOCK_USERS.riya.profile.email,
+      email: email || MOCK_USERS[id].profile.email,
       name: payload.name.trim() || undefined,
       onboardingSteps: [],
     };
     hydrateWorkspaceFromMock(id);
     onboardingDraft.resetDraft();
     persist();
+    return { ok: true };
   }
 
   function logout() {

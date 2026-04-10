@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { DataTableColumn } from "~/types/app-shell";
+import { settingsApiKeys, settingsWorkspaceMembers } from "~/data/settingsPageData";
+
 definePageMeta({ layout: "app" });
 
 useHead({ title: "Settings — Solvomo" });
@@ -7,6 +10,26 @@ const auth = useAuth();
 const { currentWorkspace, currentBrand } = useWorkspaceContext();
 
 const section = ref<"user" | "workspace" | "brand" | "members" | "api">("user");
+
+const memberColumns: DataTableColumn[] = [
+  { key: "name", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "role", label: "Role" },
+  { key: "lastActive", label: "Last active" },
+  { key: "status", label: "Status" },
+];
+
+const memberRows = computed(() => settingsWorkspaceMembers as unknown as Record<string, unknown>[]);
+
+const apiKeyColumns: DataTableColumn[] = [
+  { key: "name", label: "Key" },
+  { key: "prefix", label: "Prefix" },
+  { key: "scope", label: "Scope" },
+  { key: "created", label: "Created" },
+  { key: "lastUsed", label: "Last used" },
+];
+
+const apiKeyRows = computed(() => settingsApiKeys as unknown as Record<string, unknown>[]);
 
 const navSections = [
   {
@@ -29,13 +52,16 @@ const navSections = [
 
 <template>
   <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
-    <PageHeader
-      title="Settings"
-      :description="`Workspace: ${currentWorkspace?.name}`"
-      dense
-      metadata-tight
-      hide-context
-    />
+    <PageHeader title="Settings" dense metadata-tight hide-context />
+
+    <SurfaceCard variant="soft" padding="sm" class="border border-black/[0.05]">
+      <AnalyticsMetadataStrip
+        :items="[
+          { label: 'Workspace', value: currentWorkspace?.name ?? '—' },
+          { label: 'Brand', value: currentBrand?.name ?? '—' },
+        ]"
+      />
+    </SurfaceCard>
 
     <div class="flex flex-col gap-6 lg:flex-row lg:gap-10">
       <nav class="flex shrink-0 flex-col gap-6 lg:w-56">
@@ -60,33 +86,48 @@ const navSections = [
 
       <SurfaceCard variant="frame" class="min-w-0 flex-1 overflow-hidden" padding="lg">
         <template v-if="section === 'user'">
-          <h2 class="text-lg font-semibold">
+          <h2 class="sv-card-title">
             User
           </h2>
           <p class="mt-1 text-sm text-black/50">
             Profile and notifications for your login.
           </p>
-          <div class="mt-6 grid gap-6 lg:grid-cols-2">
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Full name</label>
-              <input class="auth-input mt-2" type="text" :value="auth.displayName" readonly>
-            </div>
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-black/45">Email</label>
-              <input class="auth-input mt-2" type="email" :value="auth.displayEmail" readonly>
+          <div class="mt-8 max-w-2xl">
+            <div class="grid gap-6 sm:grid-cols-2 sm:items-end">
+              <div class="flex min-w-0 flex-col gap-2">
+                <label for="settings-fullname" class="sv-section-title">Full Name</label>
+                <input
+                  id="settings-fullname"
+                  class="app-control w-full"
+                  type="text"
+                  :value="auth.displayName"
+                  readonly
+                  autocomplete="name"
+                >
+              </div>
+              <div class="flex min-w-0 flex-col gap-2">
+                <label for="settings-email" class="sv-section-title">Email</label>
+                <div
+                  id="settings-email"
+                  class="flex min-h-[3rem] w-full items-center rounded-[var(--sv-radius-control)] border border-black/[0.08] bg-white px-4 text-[0.98rem] font-semibold leading-tight tracking-[-0.015em] text-black/88 shadow-[0_10px_24px_-26px_rgba(15,23,42,0.18)]"
+                  role="status"
+                >
+                  {{ auth.displayEmail }}
+                </div>
+              </div>
             </div>
           </div>
-          <div class="mt-6">
-            <p class="text-xs font-bold uppercase tracking-wide text-black/45">
+          <div class="mt-10 max-w-2xl">
+            <p class="sv-section-title">
               Preferences
             </p>
-            <div class="mt-3 space-y-3 text-sm text-black/65">
-              <label class="flex items-center justify-between gap-4 rounded-xl border border-black/8 px-4 py-3">
-                <span>Operational alert emails</span>
+            <div class="mt-4 space-y-3 text-sm text-black/65">
+              <label class="flex items-center justify-between gap-4 rounded-xl border border-black/8 px-4 py-3.5">
+                <span class="font-medium text-black/80">Operational alert emails</span>
                 <input type="checkbox" checked class="h-4 w-4 rounded border-black/15">
               </label>
-              <label class="flex items-center justify-between gap-4 rounded-xl border border-black/8 px-4 py-3">
-                <span>Weekly summary digest</span>
+              <label class="flex items-center justify-between gap-4 rounded-xl border border-black/8 px-4 py-3.5">
+                <span class="font-medium text-black/80">Weekly summary digest</span>
                 <input type="checkbox" checked class="h-4 w-4 rounded border-black/15">
               </label>
             </div>
@@ -94,7 +135,7 @@ const navSections = [
         </template>
 
         <template v-else-if="section === 'workspace'">
-          <h2 class="text-lg font-semibold">
+          <h2 class="sv-card-title">
             Workspace profile
           </h2>
           <p class="mt-1 text-sm text-black/50">
@@ -112,43 +153,60 @@ const navSections = [
         </template>
 
         <template v-else-if="section === 'members'">
-          <h2 class="text-lg font-semibold">
+          <h2 class="sv-card-title">
             Members
           </h2>
           <p class="mt-1 text-sm text-black/50">
             Collaborators in this workspace.
           </p>
-          <EmptyState
-            class="mt-6"
-            title="No pending invites"
-            description="Directory sync will manage seats and roles here."
-          >
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p class="sv-section-title">
+              Directory
+            </p>
             <button type="button" class="button-secondary rounded-xl px-4 py-2 text-sm font-semibold">
               Invite member
             </button>
-          </EmptyState>
+          </div>
+          <div class="mt-4">
+            <DataTable :columns="memberColumns" :rows="memberRows" row-key="id" embed>
+              <template #cell-status="{ value }">
+                <StatusBadge
+                  :label="value === 'invited' ? 'Invited' : 'Active'"
+                  :variant="value === 'invited' ? 'pending' : 'success'"
+                />
+              </template>
+            </DataTable>
+          </div>
+          <p class="mt-4 text-[12px] text-black/45">
+            Seats and SSO roles sync when your identity provider is connected. Until then, this list is workspace-managed (demo data).
+          </p>
         </template>
 
         <template v-else-if="section === 'api'">
-          <h2 class="text-lg font-semibold">
+          <h2 class="sv-card-title">
             API keys
           </h2>
           <p class="mt-1 text-sm text-black/50">
             Programmatic access scoped to this workspace.
           </p>
-          <EmptyState
-            class="mt-6"
-            title="No keys issued"
-            description="Create a key for ETL or custom importers."
-          >
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p class="sv-section-title">
+              Issued keys
+            </p>
             <button type="button" class="button-primary rounded-xl px-4 py-2 text-sm font-semibold text-white">
               Create API key
             </button>
-          </EmptyState>
+          </div>
+          <div class="mt-4">
+            <DataTable :columns="apiKeyColumns" :rows="apiKeyRows" row-key="id" embed />
+          </div>
+          <p class="mt-4 text-[12px] text-black/45">
+            Rotate keys from this list; audit logs retain the last 90 days of usage (preview — demo values).
+          </p>
         </template>
 
         <template v-else>
-          <h2 class="text-lg font-semibold">
+          <h2 class="sv-card-title">
             Brand & attribution — {{ currentBrand?.name }}
           </h2>
           <p class="mt-1 text-sm text-black/50">

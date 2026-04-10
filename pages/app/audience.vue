@@ -1,13 +1,6 @@
 <script setup lang="ts">
 // @ts-nocheck
-import {
-  CalendarRange,
-  Download,
-  Gauge,
-  Lightbulb,
-  Radar,
-  TrendingUp,
-} from "lucide-vue-next";
+import { CalendarRange, Download } from "lucide-vue-next";
 import { toValue } from "vue";
 import { audienceSegments, audienceDevices } from "~/composables/useDemoAnalytics";
 
@@ -27,7 +20,6 @@ definePageMeta({ layout: "app" });
 
 useHead({ title: "Audience — Solvomo" });
 
-const { dataStatus } = useAppData();
 const {
   reportingMeta,
   audienceChannels,
@@ -166,13 +158,10 @@ const quickQualityChips = computed(() => [
   { label: "Overlap to watch", variant: "danger" as const },
 ]);
 
-const insightCardIcons = [Lightbulb, TrendingUp, Gauge, Radar];
 </script>
 
 <template>
   <div class="max-w-full space-y-5 overflow-x-hidden pb-2">
-    <MockDataState :status="dataStatus" />
-
     <PageHeader title="Audience" dense metadata-tight hide-context />
 
     <FilterBar compact>
@@ -401,21 +390,13 @@ const insightCardIcons = [Lightbulb, TrendingUp, Gauge, Radar];
         </h3>
         <div class="mt-3 grid gap-3 border-t border-black/[0.06] pt-3 sm:grid-cols-2 xl:grid-cols-4">
           <div
-            v-for="(card, index) in expansionInsightCards"
+            v-for="card in expansionInsightCards"
             :key="card.title"
             class="flex min-w-0 flex-col gap-2 rounded-[var(--sv-radius-control)] border border-black/[0.06] bg-black/[0.02] p-4"
           >
-            <div class="flex items-start justify-between gap-2">
-              <p class="text-[13px] font-semibold leading-snug text-black">
-                {{ card.title }}
-              </p>
-              <component
-                :is="insightCardIcons[index % insightCardIcons.length]"
-                class="h-4 w-4 shrink-0 text-black/35"
-                :stroke-width="1.9"
-                aria-hidden="true"
-              />
-            </div>
+            <p class="text-[13px] font-semibold leading-snug text-black">
+              {{ card.title }}
+            </p>
             <p class="text-[14px] font-semibold leading-snug text-black">
               {{ card.value }}
             </p>

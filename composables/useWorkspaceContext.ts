@@ -10,6 +10,7 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
   { label: "Overview", to: "/app", icon: "overview" },
   { label: "Performance", to: "/app/performance", icon: "chart" },
   { label: "Creatives", to: "/app/creatives", icon: "image" },
+  { label: "Evolve", to: "/app/evolve", icon: "evolve" },
   { label: "Audience", to: "/app/audience", icon: "users" },
   { label: "Spend", to: "/app/spend", icon: "wallet" },
   { label: "CRM / Outcomes", to: "/app/crm", icon: "link" },

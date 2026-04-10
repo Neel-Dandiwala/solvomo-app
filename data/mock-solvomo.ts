@@ -9,10 +9,10 @@ import type {
 
 /**
  * Central mock source for the Solvomo internal demo.
- * Login: neel@solvomo.co (completed) · riya@solvomo.co (onboarding path)
- * Password: any non-empty string.
+ * Login: neel@solvomo.co / neel · riya@solvomo.co / riya (passwords lowercase)
  */
-export const DEMO_PASSWORD_HINT = "Any password works in this preview.";
+/** Shown on auth pages — does not reveal credentials. */
+export const DEMO_PASSWORD_HINT = "This preview is limited to approved demo sign-ins.";
 
 export const MOCK_USERS: Record<SolvomoUserId, SolvomoMockBundle> = {
   neel: {
@@ -373,29 +373,32 @@ export const MOCK_USERS: Record<SolvomoUserId, SolvomoMockBundle> = {
     alerts: [
       {
         id: "n-al-1",
-        title: "Spend up, modeled ROI softened",
+        title: "Spend Up, Modeled ROI Softened",
         summary:
           "Paid social spend is up week-over-week while modeled ROI drifted down. Review the two prospecting cells in Meta before increasing budget.",
-        severity: "warning",
-        status: "open",
+        severity: "high",
+        status: "investigating",
+        source: "Meta Ads · Prospecting",
         createdAt: "Today · 08:40",
       },
       {
         id: "n-al-2",
-        title: "Creative outperforming cohort",
+        title: "Creative Outperforming Cohort",
         summary:
-          "The UGC testimonial cut is leading engagement within this brand profile. Validate scale in Lab with a capped test cell.",
-        severity: "info",
+          "The testimonial cut is leading engagement within this brand profile. Validate scale in Lab with a capped test cell.",
+        severity: "medium",
         status: "open",
+        source: "Creatives · Meta",
         createdAt: "Yesterday · 15:12",
       },
       {
         id: "n-al-3",
-        title: "Google Ads — conversion lag",
+        title: "Google Ads — Conversion Lag",
         summary:
           "Offline conversion imports are delayed ~6h. CRM stages may look stale until the sync clears.",
         severity: "critical",
-        status: "acknowledged",
+        status: "open",
+        source: "Google Ads · Offline",
         createdAt: "Mon · 10:05",
       },
     ],
@@ -732,11 +735,12 @@ export const MOCK_USERS: Record<SolvomoUserId, SolvomoMockBundle> = {
     alerts: [
       {
         id: "r-al-1",
-        title: "Finish Shopify / CRM mapping",
+        title: "Finish Shopify / CRM Mapping",
         summary:
           "Lifecycle stages are not fully mapped to Solvomo outcomes yet. Complete mapping to unlock CRM / Outcomes and cleaner alerts.",
-        severity: "info",
+        severity: "medium",
         status: "open",
+        source: "Shopify · Lifecycle",
         createdAt: "Today · 11:20",
       },
     ],
@@ -827,6 +831,25 @@ export function resolveUserIdFromEmail(email: string): SolvomoUserId | null {
   if (e === MOCK_USERS.neel.profile.email.toLowerCase()) return "neel";
   if (e === MOCK_USERS.riya.profile.email.toLowerCase()) return "riya";
   return null;
+}
+
+/**
+ * Demo-only access: email + password (trimmed, compared lowercase) must match.
+ * Neel: neel@solvomo.co / neel · Riya: riya@solvomo.co / riya
+ */
+export const DEMO_CREDENTIALS: Record<SolvomoUserId, { email: string; password: string }> = {
+  neel: { email: "neel@solvomo.co", password: "neel" },
+  riya: { email: "riya@solvomo.co", password: "riya" },
+};
+
+/** Returns user id when email/password match a demo account; otherwise null. */
+export function validateDemoCredentials(email: string, password: string): SolvomoUserId | null {
+  const e = email.trim().toLowerCase();
+  const p = password.trim().toLowerCase();
+  const id = resolveUserIdFromEmail(e);
+  if (!id) return null;
+  const expected = DEMO_CREDENTIALS[id].password.toLowerCase();
+  return p === expected ? id : null;
 }
 
 export function getMockBundle(userId: SolvomoUserId): SolvomoMockBundle {
