@@ -360,6 +360,7 @@ const audienceSegments = [
     id: "aud-remarketing-30d",
     name: "Remarketing - Site Visitors 30D",
     type: "Remarketing",
+    channel: "Meta Ads",
     geo: "Global",
     device: "Mixed",
     spend: 14200,
@@ -372,6 +373,7 @@ const audienceSegments = [
     id: "aud-sql-lookalike",
     name: "Lookalike - SQL Seed 5%",
     type: "Lookalike",
+    channel: "Meta Ads",
     geo: "North America",
     device: "Mobile",
     spend: 13800,
@@ -384,6 +386,7 @@ const audienceSegments = [
     id: "aud-founder-interest",
     name: "Interest Stack - Founder-Led Ops",
     type: "Interests",
+    channel: "LinkedIn",
     geo: "North America",
     device: "Mobile",
     spend: 11700,
@@ -396,6 +399,7 @@ const audienceSegments = [
     id: "aud-brand-search",
     name: "Search Intent - Brand + Competitor",
     type: "High intent",
+    channel: "Google Ads",
     geo: "Global",
     device: "Desktop",
     spend: 11600,
@@ -408,6 +412,7 @@ const audienceSegments = [
     id: "aud-nonbrand-broad",
     name: "Broad Non-Brand Workflow Terms",
     type: "Prospecting broad",
+    channel: "Google Ads",
     geo: "North America",
     device: "Desktop",
     spend: 12400,
@@ -420,6 +425,7 @@ const audienceSegments = [
     id: "aud-abm",
     name: "ABM Target Accounts",
     type: "Account list",
+    channel: "LinkedIn",
     geo: "North America + UK",
     device: "Desktop",
     spend: 10100,
@@ -432,6 +438,7 @@ const audienceSegments = [
     id: "aud-engagers-7d",
     name: "Video Engagers 7D",
     type: "Engagement",
+    channel: "YouTube",
     geo: "Europe",
     device: "Mobile",
     spend: 6500,
@@ -444,6 +451,7 @@ const audienceSegments = [
     id: "aud-youtube-visitors",
     name: "YouTube Viewers -> Site Visitors",
     type: "Remarketing",
+    channel: "YouTube",
     geo: "Global",
     device: "CTV + mobile",
     spend: 4700,
@@ -475,6 +483,9 @@ const audienceDevices = [
   { label: "Tablet", spend: 3600, revenue: 14000, cvr: 1.12 },
   { label: "CTV", spend: 3300, revenue: 14000, cvr: 0.92 },
 ] as const;
+
+/** Direct imports for Audience page charts/tables (avoids composable return edge cases in SSR). */
+export { audienceSegments, audienceDemographics, audienceGeos, audienceDevices };
 
 const spendBudgetByWeek = [
   { label: "Wk 1", actual: 8900, budget: 9400, primaryDriver: "Meta prospecting", roas: 4.4 },
@@ -631,8 +642,12 @@ export function useDemoAnalytics() {
     ["All segments", ...new Set(audienceSegments.map((row) => row.type))],
   );
 
+  const audienceChannels = computed(() =>
+    ["All", ...Array.from(new Set(audienceSegments.map((row) => row.channel))).sort((a, b) => a.localeCompare(b))],
+  );
+
   const audienceRegions = computed(() =>
-    ["All regions", ...new Set(audienceSegments.map((row) => row.geo))],
+    ["All", ...Array.from(new Set(audienceSegments.map((row) => row.geo))).sort((a, b) => a.localeCompare(b))],
   );
 
   const audienceDevicesList = computed(() =>
@@ -802,6 +817,7 @@ export function useDemoAnalytics() {
     creativeFormats,
     creativePlatforms,
     audienceTypes,
+    audienceChannels,
     audienceRegions,
     audienceDevicesList,
     spendChannels,

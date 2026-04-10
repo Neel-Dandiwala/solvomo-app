@@ -1,23 +1,30 @@
 <script setup lang="ts">
 // @ts-nocheck
 
-const props = defineProps<{
-  items: Array<{
-    label: string;
-    value: number;
-    valueLabel: string;
-    secondary?: string;
-    meta?: string;
-  }>;
-}>();
+const props = withDefaults(
+  defineProps<{
+    items: Array<{
+      label: string;
+      value: number;
+      valueLabel: string;
+      secondary?: string;
+      meta?: string;
+    }>;
+  }>(),
+  { items: () => [] },
+);
 
-const maxValue = computed(() => Math.max(1, ...props.items.map((item: { value: number }) => item.value)));
+const barItems = computed(() => (Array.isArray(props.items) ? props.items : []));
+
+const maxValue = computed(() =>
+  Math.max(1, ...barItems.value.map((item: { value: number }) => item.value)),
+);
 </script>
 
 <template>
   <div class="space-y-3">
     <div
-      v-for="item in items"
+      v-for="item in barItems"
       :key="item.label"
       class="sv-card-inset rounded-[1.25rem] px-4 py-4"
     >

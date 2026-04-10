@@ -9,7 +9,6 @@ import {
   Layers3,
   Palette,
   Sparkles,
-  Table2,
   Target,
   TimerReset,
   TrendingDown,
@@ -242,51 +241,6 @@ const healthCards = computed(() => [
   },
 ]);
 
-/** By-format rollups for the current filter cohort (keeps Spend allocation in sync with the table). */
-const formatBreakdownFiltered = computed(() => {
-  const grouped = new Map<string, { spend: number; revenue: number; conversions: number; avgCtrWeighted: number; impressions: number }>();
-
-  filteredAssets.value.forEach((asset: CreativeAsset) => {
-    const current = grouped.get(asset.format) ?? { spend: 0, revenue: 0, conversions: 0, avgCtrWeighted: 0, impressions: 0 };
-    current.spend += asset.spend;
-    current.revenue += asset.revenue;
-    current.conversions += asset.conversions;
-    current.avgCtrWeighted += asset.ctr * asset.impressions;
-    current.impressions += asset.impressions;
-    grouped.set(asset.format, current);
-  });
-
-  return Array.from(grouped.entries())
-    .map(([label, value]) => ({
-      label,
-      spend: value.spend,
-      revenue: value.revenue,
-      conversions: value.conversions,
-      ctr: value.impressions ? value.avgCtrWeighted / value.impressions : 0,
-      roas: value.spend ? value.revenue / value.spend : 0,
-    }))
-    .sort((left, right) => right.revenue - left.revenue);
-});
-
-const formatSegments = computed(() =>
-  formatBreakdownFiltered.value.map((item, index) => ({
-    label: item.label,
-    value: item.spend,
-    valueLabel: formatCompactCurrency(item.spend),
-    tone: index === 0 ? "depth" : index === 1 ? "product" : index === 2 ? "brand" : "neutral",
-  })),
-);
-
-const formatRows = computed(() =>
-  formatBreakdownFiltered.value.map((item) => ({
-    label: item.label,
-    value: item.revenue,
-    valueLabel: formatCompactCurrency(item.revenue),
-    secondary: `${formatCompactCurrency(item.spend)} spend · ${formatCompactNumber(item.conversions)} conv.`,
-    meta: `${formatPercent(item.ctr)} CTR · ${formatMultiplier(item.roas, 1)} ROAS`,
-  })),
-);
-
 const quickSignals = computed(() => [
   { label: "UGC cluster strong", variant: "success" as const },
   { label: "Carousel retargeting", variant: "info" as const },
@@ -490,7 +444,7 @@ const sectionIconClass =
         />
       </div>
       <AnalyticsMetricCard
-        v-for="(item, idx) in kpis"
+        v-for="item in kpis"
         :key="item.title"
         :class="kpiColClass()"
         :title="item.title"
@@ -503,45 +457,7 @@ const sectionIconClass =
         dense
       />
 
-      <!-- Spend allocation + library first (demo data + scroll visibility) -->
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
-        <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div :class="sectionIconClass">
-              <Layers3 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
-            <div>
-              <h3 class="sv-card-title">Spend allocation</h3>
-              <p class="mt-1 text-[12px] text-black/45">
-                {{ filteredAssets.length }} creatives in view · {{ formatBreakdownFiltered.length }} format groups
-              </p>
-            </div>
-          </div>
-        </div>
-        <template v-if="formatSegments.length">
-          <AnalyticsSegmentBar :segments="formatSegments" />
-          <AnalyticsBarsList :items="formatRows" />
-        </template>
-        <p
-          v-else
-          class="rounded-[1rem] border border-dashed border-black/[0.12] bg-black/[0.02] px-4 py-8 text-center text-[13px] text-black/46"
-        >
-          No creatives match the current filters.
-        </p>
-      </SurfaceCard>
-
-      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0">
-        <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div :class="sectionIconClass">
-              <Table2 class="h-5 w-5" :stroke-width="1.9" />
-            </div>
-            <div>
-              <h3 class="sv-card-title">Creative library</h3>
-              <p class="mt-1 text-[12px] text-black/45">{{ tableRows.length }} rows in this view</p>
-            </div>
-          </div>
-        </div>
+      <SurfaceCard variant="frame" padding="sm" class="col-span-12 min-w-0 overflow-hidden p-0">
         <DataTable :columns="columns" :rows="tableRows" row-key="id" embed>
           <template #cell-name="{ row }">
             <div class="flex items-center gap-3">
