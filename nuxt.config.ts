@@ -1,3 +1,4 @@
+import { vueRenderSlotNullGuard } from "./vite/vue-render-slot-null-guard";
 import { vueRouterDevtoolsNullGuard } from "./vite/vue-router-devtools-null-guard";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -21,8 +22,9 @@ export default defineNuxtConfig({
     },
   },
   vite: {
-    plugins: [vueRouterDevtoolsNullGuard()],
+    plugins: [vueRenderSlotNullGuard(), vueRouterDevtoolsNullGuard()],
     resolve: {
+      dedupe: ["vue"],
       alias: {
         // Client bundle: import.meta.server is false, but Vite still resolves
         // import("#app-manifest") in the unused branch. Stub satisfies analysis.
